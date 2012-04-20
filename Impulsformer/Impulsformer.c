@@ -1,0 +1,135 @@
+/**************************************************************************
+Impulsformer - device to transform a voltage delivered from a current clamp
+to an S0-output with 1000 pulses per kilo-Watt-hour
+
+Uses an Atmel ATtiny13 - Copyright 2012 Markus Gebhard
+
+Default oscillator setting 9,6MHz with prescaling by 8 to 1,2MHz
+
+Use ADC3/PB3 as analog input
+Use PB2 as pulse output with optocoupler active low
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**************************************************************************/
+
+#ifndef F_CPU
+#define F_CPU 1200000	// 1,2MHz = 9,6MHz/8
+#endif
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+
+#define GRID_V	230;	// Standard voltage of power grid in Germany
+#define CLAMP_A	50;		// Maximum current that the current clamp transforms
+
+#define PULSEPORT PORTB	// the port on which the pulses are given
+#define PULSEDDR  DDRB	// direction of pulso port
+#define PULSE_1   PB2	// first pulse output port (there might be more)
+#define N_KWH     1000	// Number of pulses per kWh
+
+// global variables
+uint32_t meterconst, pulseconst, energy;
+uint16_t lastADC;
+
+// initialize the Pulse output port
+void init_Output( void )
+{
+	// set output port(s) as output
+	PULSEDDR |= (1<<PULSE_1);
+	// set level on output port high
+	PULSEPORT |= (1<<PULSE_1);
+}
+
+// initialize the analog-digital-converter
+void init_ADC( void )
+{
+	// Disable unused digital input buffers for noise reduction
+	DIDR0  = (1<<ADC0D) | (1<<ADC1D) | (1<<ADC2D) | (1<<ADC3D);
+	// prescaler clk/4 => 300kHz sampling frequency
+	ADCSRA = (1<<ADPS1);
+	// Vref = Vbg (1.1V), right adjust (default), select ADC3 as input
+	ADMUX  = (1<<REFS0) | (1<<MUX0) | (1<<MUX1);
+	// enable ADC and start first ADC conversion (25 cycl = 83,33usec)
+	ADCSRA |= (1<<ADEN) | (1<<ADSC);
+	_delay_ms(1);
+	// start second conversion to initialize lastADC for proper "integration"
+	ADCSRA |= (1<<ADSC);
+	while (ADCSRA & (1<<ADSC));
+	lastADC = ADC;
+}
+
+// initialize timer for continuous AD conversions and defined time base
+void init_Timer( void )
+{
+	// set prescaling to /8 => 1 cycl = 6,67usec
+	TCCR0B = (1<<CS01);
+	// set CTC mode
+	TCCR0A = (1<<WGM01);
+	// set top of CTC 150 * 6,67usec = 1ms
+	OCR0A = 0x96;
+	// set timer interrupt
+	TIMSK0 = (1<<OCIE0A);
+}
+
+void send_pulse(unsigned char port)
+{
+	// active on low
+	PULSEPORT &= ~(1<<port);
+	// use delay compliant to S0-specification
+	_delay_ms(30);
+	// deactivate again
+	PULSEPORT |= (1<<port);
+}
+
+// Interrupt on timer compare match to measure and integrate power
+ISR(TIM0_COMPA_vect)
+{
+	uint16_t actADC;
+	while (ADCSRA & (1<<ADSC));
+	actADC = ADC;
+	// discrete integration via Trapezoid Sums I(f)a|b ~ ((b-a)/2)*(f(a)+f(b))
+	energy += meterconst * (lastADC + actADC);
+	lastADC = actADC;
+	// start next conversion
+	ADCSRA |= (1<<ADSC);
+}
+
+int main( void )
+{
+	init_ADC();
+	init_Timer();
+	init_Output();
+	// calculate metering constant for measuring intervalls
+	// (T/2) * (GRID_V * CLAMP_A / 1024); T = 1ms
+	meterconst = GRID_V;
+	meterconst *= CLAMP_A;
+	meterconst /= 2048U;
+	// set energy limit to send a pulse kWh -> 1000 W * 60 min * 60 sec * 1000 ms
+	pulseconst = 3600000000U; 	// kWh in Wms
+	pulseconst /= N_KWH;		// distributed to n impulses per kWh
+	// enable interrupts
+	sei();
+	// main loop
+	while (1)
+	{
+		if (energy >= pulseconst)
+		{
+			send_pulse(PULSE_1);
+			energy -= pulseconst;
+		}
+		_delay_ms(1);  // without this delay it doesn't work
+	}
+	return (0);
+}

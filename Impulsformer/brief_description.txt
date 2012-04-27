@@ -1,0 +1,7 @@
+"Impulsformer" provides a little converter that transforms the current measured by a current clamp (as used by the Fluksometer - see www.flukso.net) to an S0-conformant impulse set, in the example case 1000 impulses per measured kWh.
+The basic use of the converter is for the Fluksometer to enhance it by one (or more, as the used microcontroller's ADCs are not fully utilized) analog input.
+The given schematics, board and corresponding software are based on an Atmel ATtiny13(A) and just a few external components.
+The used voltage converter is a low drop variant capable to be "clamped" to the existing Fluksometer AC/DC module, so not requiring an additional voltage source.
+The microcontroller may be driven also with lower Vcc and different operating frequency; the given outline is working fine...
+
+Markus Gebhard, Karlsruhe, Germany, April 2012

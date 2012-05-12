@@ -31,15 +31,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define F_CPU 1200000	// 1,2MHz = 9,6MHz/8
 #endif
 
-#define THREE_CLAMPS 0	// if 1 then adapt to the three clamp variant
+#define THREE_CLAMPS 1	// if 1 then adapt to the three clamp variant
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#define GRID_V	230;	// Standard voltage of power grid in Germany
-#define CLAMP_A	50;		// Maximum current that the current clamp transforms
-#define N_KWH     1000	// Number of pulses per kWh
+#define GRID_V	230		// Standard voltage of power grid in Germany
+#define CLAMP_A	50		// Maximum current that the current clamp transforms
+#define N_KWH   1000	// Number of pulses per kWh
 
 #define PULSEPORT PORTB	// the port on which the pulses are given
 #define PULSEDDR  DDRB	// direction of pulse port
@@ -52,10 +52,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // global variables
 uint32_t meterconst, pulseconst, energy;
 #if THREE_CLAMPS
-volatile uint16_t[3] lastADC;
+volatile uint16_t lastADC[3];
 volatile uint8_t activeADC;	// the actually active ADC port for multiplexing
 #else
-volatile uint16_t lastADC;			// value of last measurement for integration
+volatile uint16_t lastADC;	// value of last measurement for integration
 #endif
 
 // initialize the Pulse output port
@@ -123,17 +123,20 @@ ISR(TIM0_COMPA_vect)
 #if THREE_CLAMPS
 	energy += meterconst * (lastADC[activeADC-1] + actADC);
 	lastADC[activeADC-1] = actADC;
+	// count through ADCs
+	// Start was ADC3,
+	// ++ => 4 modulo 3 = 1 => ADC1, 
+	// ++ => 2 modulo 3 = 2 => ADC2,
+	// ++ => 3 keep for ADC3, and again from the beginning
+	activeADC++;
+	if (activeADC != 3) activeADC%3;
+	// measure next ADC input
+	ADMUX  = (1<<REFS0) | (activeADC<<MUX0);
 #else	
 	energy += meterconst * (lastADC + actADC);
 	lastADC = actADC;
 #endif	
 	// start next conversion
-#if THREE_CLAMPS
-	activeADC++;
-	if (activeADC != 3) activeADC%3;
-	// measure next ADC input
-	ADMUX  = (1<<REFS0) | (activeADC<<MUX0);
-#endif	
 	ADCSRA |= (1<<ADSC);
 }
 

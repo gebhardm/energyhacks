@@ -2,6 +2,9 @@
 Impulsformer - device to transform a voltage delivered from a current clamp
 to an S0-output with 1000 pulses per kilo-Watt-hour
 
+Alternative version with energy calculation in timer interupt and
+continuous ADC measurement...
+
 Uses an Atmel ATtiny13(A)) - Copyright 2012 Markus Gebhard
 
 Changed oscillator setting 4,8MHz with prescaling by 8 to 600kHz
@@ -12,7 +15,6 @@ Use PB2 as pulse output with optocoupler active low;
 Three clamp variant:
 Use ADC1,2,3/PB2,4,3 as analog inputs,
 Use PB1 as pulse output with optocoupler active low;
-Note: current clamp has reaction time of 300ms according to vendor info
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
 #ifndef F_CPU
-#define F_CPU 600000	// 600kHz = 4,8MHz/8
+#define F_CPU 1200000	// 1200kHz = 9,6MHz/8
 #endif
 
 #define THREE_CLAMPS 0	// if 1 then adapt to the three clamp variant
@@ -51,13 +53,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PULSE_1   PB2	// pulse output port in one clamp variant
 #endif
 
-// global variables
-uint32_t meterconst, pulseconst, energy;
+// global variables for use in interupt routine
+// factors for energy calculation
+volatile uint32_t meterconst, pulseconst;
+// the actual energy
+volatile uint32_t energy;
+// current ADC reading
+volatile uint16_t actADC;
+// ADC readings
 #if THREE_CLAMPS
-uint16_t lastADC[3];	// values of last measurements for integration
-uint8_t activeADC;		// the actually active ADC port for multiplexing
+volatile uint16_t lastADC[3];	// values of last measurements for integration
+volatile uint8_t activeADC;		// the actually active ADC port for multiplexing
 #else
-uint16_t lastADC;		// value of last measurement for integration
+volatile uint16_t lastADC;	// value of last measurement for integration
 #endif
 
 // initialize the Pulse output port
@@ -74,8 +82,8 @@ void init_ADC( void )
 {
 	// Disable unused digital input buffers for noise reduction
 	DIDR0  = (1<<ADC0D) | (1<<ADC1D) | (1<<ADC2D) | (1<<ADC3D);
-	// prescaler clk/4 => 150kHz sampling frequency
-	ADCSRA = (1<<ADPS1);
+	// prescaler clk/8 => 150kHz sampling frequency
+	ADCSRA = (1<<ADPS1) | (1<<ADPS0);
 	// Vref = Vbg (1.1V), right adjust (default), select ADC3 as input
 	ADMUX  = (1<<REFS0) | (1<<MUX0) | (1<<MUX1);
 	// enable ADC and start first ADC conversion (25 cycl)
@@ -95,56 +103,34 @@ void init_ADC( void )
 // initialize timer for continuous AD conversions and defined time base
 void init_Timer( void )
 {
-	// set to prescaling / 1024=> 1 cycl = 1,706667msec
+	// set to prescaling / 1024 => 1 cycl = 0,85333333msec
 	TCCR0B = (1<<CS02) | (1<<CS00);
-	// set clear time on compare match (CTC) mode
+	// set clear timer on compare match (CTC) mode
 	TCCR0A = (1<<WGM01);
-	// set top of CTC 195 * 1,706667msec = 333ms
-	OCR0A = 195;
+	// set top of CTC 47 * 0,853333msec = 40ms
+	OCR0A = 47;
 	// set timer interrupt
 	TIMSK0 = (1<<OCIE0A);
 }
 
-void send_pulse( void )
-{
-	// active on low
-	PULSEPORT &= ~(1<<PULSE_1);
-	// use delay compliant to S0-specification
-	_delay_ms(30);
-	// deactivate again
-	PULSEPORT |= (1<<PULSE_1);
-}
-
-// Interrupt on timer compare match to measure and integrate power
+// Interrupt on timer compare match to integrate power over defined time interval
 ISR(TIM0_COMPA_vect)
 {
-	uint16_t actADC;				// actually measured value
-	while (ADCSRA & (1<<ADSC));
-	actADC = ADC;
-	// discrete integration via Trapezoid Sums I(f)a|b ~ ((b-a)/2)*(f(a)+f(b))
 #if THREE_CLAMPS
 	energy += meterconst * (lastADC[activeADC-1] + actADC);
-	lastADC[activeADC-1] = actADC;
-	// count through ADCs
-	// Start was ADC3,
-	// ++ => 4 modulo 3 = 1 => ADC1, 
-	// ++ => 2 modulo 3 = 2 => ADC2,
-	// ++ => 3 keep for ADC3, and again from the beginning
-	activeADC++;
-	if (activeADC != 3) activeADC%3;
-	// measure next ADC input
-	ADMUX  = (1<<REFS0) | (activeADC<<MUX0);
 #else
 	energy += meterconst * (lastADC + actADC);
-	lastADC = actADC;
 #endif
 	if (energy >= pulseconst)
 	{
-		send_pulse();
+		// active on low
+		PULSEPORT &= ~(1<<PULSE_1);
+		// use delay compliant to S0-specification
+		_delay_ms(30);
+		// deactivate again
+		PULSEPORT |= (1<<PULSE_1);;
 		energy -= pulseconst;
 	}
-	// start next conversion
-	ADCSRA |= (1<<ADSC);
 }
 
 int main( void )
@@ -153,8 +139,8 @@ int main( void )
 	init_Timer();
 	init_Output();
 	// calculate metering constant for measuring intervalls
-	// (T/2) * (GRID_V * CLAMP_A / 1024); T = 333ms
-	meterconst = 333U;
+	// (T/2) * (GRID_V * CLAMP_A / 1024); T = 40ms
+	meterconst = 40;
 #if THREE_CLAMPS
 	// in the three clamp variant the ADC channels are measured each 3rd time
 	meterconst *= 3;
@@ -167,9 +153,30 @@ int main( void )
 	pulseconst /= N_KWH;		// distributed to n impulses per kWh
 	// enable interrupts
 	sei();
-	// main loop
+	// main loop - continuous ADC measuring
 	while (1)
 	{
+		while (ADCSRA & (1<<ADSC));
+		actADC = ADC;
+		// discrete integration via Trapezoid Sums I(f)a|b ~ ((b-a)/2)*(f(a)+f(b))
+#if THREE_CLAMPS
+		//energy += meterconst * (lastADC[activeADC-1] + actADC);
+		lastADC[activeADC-1] = actADC;
+		// count through ADCs
+		// Start was ADC3,
+		// ++ => 4 modulo 3 = 1 => ADC1, 
+		// ++ => 2 modulo 3 = 2 => ADC2,
+		// ++ => 3 keep for ADC3, and again from the beginning
+		activeADC++;
+		if (activeADC != 3) activeADC%3;
+		// measure next ADC input
+		ADMUX  = (1<<REFS0) | (activeADC<<MUX0);
+#else
+		//energy += meterconst * (lastADC + actADC);
+		lastADC = actADC;
+#endif
+		// start next conversion
+		ADCSRA |= (1<<ADSC);
 	}
 	return (0);
 }

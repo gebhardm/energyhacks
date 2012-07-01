@@ -131,7 +131,7 @@ ISR(TIM0_COMPA_vect)
 	// ++ => 2 modulo 3 = 2 => ADC2,
 	// ++ => 3 keep for ADC3, and again from the beginning
 	activeADC++;
-	if (activeADC != 3) activeADC%3;
+	if (activeADC != 3) activeADC %= 3;
 	// measure next ADC input
 	ADMUX  = (1<<REFS0) | (activeADC<<MUX0);
 #else

@@ -38,29 +38,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DELTA 30
 // derived values for frequency detection
 #define FACTOR (unsigned int) (F_CPU / DIVIDER / NET) // relevant count takts per Hz
-#define DELTA2 DELTA / 2
+//#define DELTA2 DELTA / 2
 // define the LEDs display frequencies
 // example for 50Hz as in Europe:
 // Factor = 12.000.000 / 8 / 50 = 30.000 counts equal 50 Hz
 // Limits in Europe are 50,2 Hz and 49,8Hz
 // 50,2Hz equal 30.120 counts, 49,8Hz equal 29.880 counts
 // distributed on 9 LEDs with 50Hz in the center give a delta per LED of 30 counts
-#define FRQ_1 (unsigned int) (FACTOR - 4 * DELTA)
-#define FRQ_2 (unsigned int) (FACTOR - 3 * DELTA)
-#define FRQ_3 (unsigned int) (FACTOR - 2 * DELTA)
-#define FRQ_4 (unsigned int) (FACTOR - DELTA)
-#define FRQ_5 (unsigned int) (FACTOR)
-#define FRQ_6 (unsigned int) (FACTOR + DELTA)
-#define FRQ_7 (unsigned int) (FACTOR + 2 * DELTA)
-#define FRQ_8 (unsigned int) (FACTOR + 3 * DELTA)
-#define FRQ_9 (unsigned int) (FACTOR + 4 * DELTA)
 /***************************************************************************/
 //Header Definition of used  routined (I don't like header files :-))
 #ifdef RS232
 void init_USART( unsigned int );
 void send_USART( unsigned char );
 void sendchars_USART( char* );
-void send_int( int );
 void send_uint( unsigned int );
 #endif
 void LED_init( void );
@@ -115,19 +105,6 @@ void sendchars_USART( char *s )
   {                                 // output all chars
      send_USART(*s++);
   } 
-}
-
-void send_int( int n )
-{
-  unsigned char dig[5], num = 0, i; // compute 5 digit integer with sign
-  if (n<0) { send_USART('-'); n = -n; }
-  if (n<10) send_USART('0');        // leading zero for small numbers
-  do
-  {
-    dig[num++] = ( n % 10 ) + 0x30;
-	n = n / 10;
-  } while (n != 0);
-  for (i=num; i!=0; i--) send_USART(dig[i-1]);
 }
 
 void send_uint( unsigned int n )
@@ -219,15 +196,7 @@ int main( void )
 		send_uint(mean); send_USART(0x0d); send_USART(0x0a);
 		#endif
 		LED_off();
-		if ((mean >= (FRQ_1 - DELTA2)) && (mean < (FRQ_1 + DELTA2))) LED_set(1);
-		if ((mean >= (FRQ_2 - DELTA2)) && (mean < (FRQ_2 + DELTA2))) LED_set(2);
-		if ((mean >= (FRQ_3 - DELTA2)) && (mean < (FRQ_3 + DELTA2))) LED_set(3);
-		if ((mean >= (FRQ_4 - DELTA2)) && (mean < (FRQ_4 + DELTA2))) LED_set(4);
-		if ((mean >= (FRQ_5 - DELTA2)) && (mean < (FRQ_5 + DELTA2))) LED_set(5);
-		if ((mean >= (FRQ_6 - DELTA2)) && (mean < (FRQ_6 + DELTA2))) LED_set(6);
-		if ((mean >= (FRQ_7 - DELTA2)) && (mean < (FRQ_7 + DELTA2))) LED_set(7);
-		if ((mean >= (FRQ_8 - DELTA2)) && (mean < (FRQ_8 + DELTA2))) LED_set(8);
-		if ((mean >= (FRQ_9 - DELTA2)) && (mean < (FRQ_9 + DELTA2))) LED_set(9);
+		LED_set((unsigned int)((mean - FACTOR)/DELTA)+5);
 	}
   }
   return(0);

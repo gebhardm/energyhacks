@@ -8,6 +8,8 @@ Project structure:
 |
 |--- Impulsformer: Convert analog input from a current clamp to S0-impulses/kWh
 |
+|--- Netfrequency: Show the actual power grid frequency in a range of 50+/-0.2Hz
+|
 |--- RS232-RS485-Converter: Convert legacy serial I/O to RS-485 with flow control 
 |
 `--- TempGuard: Use temperature sensors to control a warm water circulation pump

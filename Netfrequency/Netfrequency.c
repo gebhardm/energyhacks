@@ -25,18 +25,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /***************************************************************************/
 //used standard includes 
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 /***************************************************************************/
+#define AVG	  				// measure frequency with average calculation
 //#define RS232
 #ifdef RS232
 #define BAUD 19200              // RS232 speed for debugging purposes
 #endif
-#define DIRECT 0				// measure frequency without average calculation
 #define NET 50					// set Net default frequency
 #define DIVIDER 8				// Prescaler of Timers
 #define NETCNT (unsigned int) (F_CPU / DIVIDER / NET) // relevant count takts per Hz
+#define DELTA 30				// delta counts per LED
 // define the LEDs display frequencies
 // example for 50Hz as in Europe:
 // Factor = 12.000.000 / 8 / 50 = 30.000 counts equal 50 Hz
@@ -44,7 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 50,2Hz equal 30.120 counts, 49,8Hz equal 29.880 counts
 // distributed on 9 LEDs with 50Hz in the center give a delta per LED of 30 counts
 /***************************************************************************/
-//Header Definition of used  routined (I don't like header files :-))
+//Header Definition of used  routines (I don't like header files :-))
 #ifdef RS232
 void init_USART( unsigned int );
 void send_USART( unsigned char );
@@ -65,40 +67,49 @@ volatile unsigned char cnt = 0;
 //Interrupt Routines for computing INT0
 ISR(INT0_vect)
 {
-	int led;
-#if DIRECT == 0
-	sum += TCNT1;
+	int led, timer, t_Hz;
+	timer = TCNT1;
 	TCNT1 = 0;
-	cnt++;
-	if (cnt == NET)
+	t_Hz = F_CPU / DIVIDER / timer;
+	// use timer value only if variance not too large (there are false counts)
+	if (abs(NET-t_Hz)<5)
 	{
-		sum /= NET;
-		led = sum;
+		// measure with average calculation over last second
+#ifdef AVG
+		sum += timer;
+		cnt++;
+		if (cnt == NET)
+		{
+			// the average
+			sum /= NET;
+			// mapped onto the LEDs
+			led = sum;
+			led -= NETCNT;
+			led /= DELTA;
+			led += 5;
+			LED_clr(lastLED);
+			LED_set(led);
+			lastLED = led;
+			sum = 0;
+			cnt = 0;
+		}
+#else
+		// output measured value directly
+		led = timer;
 		led -= NETCNT;
-		led /= 30;
+		led /= DELTA;
 		led += 5;
 		LED_clr(lastLED);
 		LED_set(led);
 		lastLED = led;
-		sum = 0;
-		cnt = 0;
-	}
-#else
-	led = TCNT1;
-	led -= NETCNT;
-	led /= 30;
-	led += 5;
-	TCNT1 = 0;
-	LED_clr(lastLED);
-	LED_set(led);
-	lastLED = led;
 #endif
+	}
 }
-// check, if Timer overflows
+/* check, if Timer overflows
 ISR(TIMER1_OVF_vect)
 {
 	TCNT1 = 0;
-}
+} */
 /***************************************************************************/
 #ifdef RS232
 //RS-232 Routines
@@ -189,7 +200,7 @@ int main( void )
 	case 8: TCCR1B |= (0x02 << CS10); break; 
 	case 64: TCCR1B |= (0x03 << CS10); break;
 	}
-	TIMSK  |= (1 << TOIE1);  // Interrupt on timer overflow
+	//TIMSK  |= (1 << TOIE1);  // Interrupt on timer overflow
 	// LEDs initialization
 	LED_init();
 	// LEDs count through (used just as a appetizer)

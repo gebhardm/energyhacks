@@ -1,0 +1,5 @@
+# ignore the default build directory
+default/
+#ignore the AVR Studio project files
+*.aws
+*.aps

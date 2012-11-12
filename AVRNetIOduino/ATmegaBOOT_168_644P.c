@@ -7,7 +7,7 @@
 /* ATmegaBOOT.c                                           */
 /*                                                        */
 /*                                                        */
-/* 20121111: enhanced for ATmega644P by M. Gebhard, KA    */
+/* 20121111: enhanced for ATmega32 and 644P by M. Gebhard */
 /* 20090308: integrated Mega changes into main bootloader */
 /*           source by D. Mellis                          */
 /* 20080930: hacked for Arduino Mega (with the 1280       */
@@ -124,6 +124,11 @@
 #define BL_PIN  PIND
 #define BL0     PIND0
 #define BL1		PIND2
+#elif defined __AVR_ATmega32__
+#define BL_DDR  DDRD
+#define BL_PORT PORTD
+#define BL_PIN  PIND
+#define BL	    PIND0
 #else
 /* other ATmegas have only one UART, so only one pin is defined to enter bootloader */
 #define BL_DDR  DDRD
@@ -141,7 +146,8 @@
 #define LED_PORT PORTB
 #define LED_PIN  PINB
 #define LED      PINB7
-#elif defined __AVR_ATmega644P__ // use an LED on pin B0 (AVRNetIO Ext pin header pin 7)
+#elif defined __AVR_ATmega644P__ || defined __AVR_ATmega32__
+/* use an LED on pin B0 (AVRNetIO Ext pin header pin 7) */
 #define LED_DDR  DDRB
 #define LED_PORT PORTB
 #define LED_PIN  PINB
@@ -249,6 +255,11 @@
 #define SIG2	0x96
 #define SIG3	0x0a
 #define PAGE_SIZE	0x80U	//128 words
+
+#elif defined __AVR_ATmega32__
+#define SIG2	0x95
+#define SIG3	0x02
+#define PAGE_SIZE	0x40U	//64 words
 
 #endif
 
@@ -410,7 +421,7 @@ int main(void)
 	timing out (DAM: 20070509) */
 	DDRD &= ~_BV(PIND0);
 	PORTD |= _BV(PIND0);
-#elif defined __AVR_ATmega8__
+#elif defined __AVR_ATmega8__ || defined __AVR_ATmega32__
 	/* m8 */
 	UBRRH = (((F_CPU/BAUD_RATE)/16)-1)>>8; 	// set baud rate
 	UBRRL = (((F_CPU/BAUD_RATE)/16)-1);
@@ -609,10 +620,8 @@ int main(void)
 				/* if ((length.byte[0] & 0x01) == 0x01) length.word++;	//Even up an odd number of bytes */
 				if ((length.byte[0] & 0x01)) length.word++;	//Even up an odd number of bytes
 				cli();					//Disable interrupts, just to be sure
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega1281__)
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega1281__) || defined(__AVR_ATmega644P__)
 				while(bit_is_set(EECR,EEPE));			//Wait for previous EEPROM writes to complete
-#elif defined(__AVR_ATmega644P__)
-				while(bit_is_set(EECR,EEPE));
 #else
 				while(bit_is_set(EECR,EEWE));			//Wait for previous EEPROM writes to complete
 #endif
@@ -710,9 +719,7 @@ int main(void)
 					 "rjmp	write_page	\n\t"
 					 "block_done:		\n\t"
 					 "clr	__zero_reg__	\n\t"	//restore zero register
-#if defined __AVR_ATmega168__  || __AVR_ATmega328P__ || __AVR_ATmega128__ || __AVR_ATmega1280__ || __AVR_ATmega1281__ 
-					 : "=m" (SPMCSR) : "M" (PAGE_SIZE) : "r0","r16","r17","r24","r25","r28","r29","r30","r31"
-#elif defined(__AVR_ATmega644P__)
+#if defined __AVR_ATmega168__  || __AVR_ATmega328P__ || __AVR_ATmega128__ || __AVR_ATmega1280__ || __AVR_ATmega1281__ || __AVR_ATmega644P__
 					 : "=m" (SPMCSR) : "M" (PAGE_SIZE) : "r0","r16","r17","r24","r25","r28","r29","r30","r31"
 #else
 					 : "=m" (SPMCR) : "M" (PAGE_SIZE) : "r0","r16","r17","r24","r25","r28","r29","r30","r31"

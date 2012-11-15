@@ -1,9 +1,23 @@
-This hack uses different internet sources (Arduino.cc, Sanguino.cc, ...) to actually use the Arduino IDE also on a Pollin AVR NetIO board. This would enable a very cheap variant of the Arduino plus Ethernet option.
-In the first iteration the bootloader code is enhanced to work also with an ATmega644P on the AVR NetIO, as it is used, for example also on the Ethersex variant of the board setup.
-In a further iteration also the original ATmega32 will be made available.
+This hack uses different internet sources (Arduino.cc, Sanguino.cc, ...)
+to actually use the Arduino IDE also on a Pollin AVR NetIO board. This
+enables a very cheap variant of the Arduino plus Ethernet option.
+The bootloader source file is taken from the Arduino 1.0.2 sources
+and is enhanced to work also with both an ATmega644P and ATmega32 on
+the Pollin AVR NetIO.
 
-There are surely different sources that did the adaptation already; but after fiddling two days with the Sanguino bootloader code and not succeeding, I tried to enhance the original Arduino bootloader from scratch and by that learn about its behavior.
+Test was successful using the Sanguino w/ ATmega644P and Jean-Claude
+Wippler's EtherCard implementation; not to change the select pin of the
+ethercard examples from default 8 to 4 (PB4).
+
+There are surely different sources that did the adaptation already;
+but after fiddling two days with the Sanguino bootloader code and not
+succeeding, I tried to enhance the original Arduino bootloader from
+scratch and by that learn about its behavior.
 
 The code is under the given sources license.
+
+Sources used
+* http://sanguino.cc/
+* https://github.com/jcw/ethercard
 
 Markus Gebhard, Karlsruhe, November 2012

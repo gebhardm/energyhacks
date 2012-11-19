@@ -27,6 +27,7 @@ atmega32.bootloader.low_fuses=0xBF
 atmega32.bootloader.high_fuses=0xC8
 atmega32.bootloader.path=atmega
 atmega32.bootloader.file=ATmegaBOOT_168_32.hex
+atmega32.bootloader.unlock_bits=0xFF
 atmega32.bootloader.lock_bits=0xFF
 
 atmega32.build.mcu=atmega32

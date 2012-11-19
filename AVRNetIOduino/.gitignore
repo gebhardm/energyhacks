@@ -1,3 +1,5 @@
+# currently ignore the Arduino hardware directory for AVR NetIO
+AVRNetIOduino/
 # ignore the default build directory
 default/
 #ignore the AVR Studio project files

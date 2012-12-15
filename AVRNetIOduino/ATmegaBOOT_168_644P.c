@@ -6,7 +6,6 @@
 /*                                                        */
 /* ATmegaBOOT.c                                           */
 /*                                                        */
-/*                                                        */
 /* 20121111: enhanced for ATmega32 and 644P by M. Gebhard */
 /* 20090308: integrated Mega changes into main bootloader */
 /*           source by D. Mellis                          */
@@ -147,11 +146,11 @@
 #define LED_PIN  PINB
 #define LED      PINB7
 #elif defined __AVR_ATmega644P__ || defined __AVR_ATmega32__
-/* use an LED on pin B0 (AVRNetIO Ext pin header pin 7) */
+/* use an LED on pin B1 (AVRNetIO jumper to select programming mode) */
 #define LED_DDR  DDRB
 #define LED_PORT PORTB
 #define LED_PIN  PINB
-#define LED      PINB0
+#define LED      PINB1
 #else
 /* Onboard LED is connected to pin PB5 in Arduino NG, Diecimila, and Duomilanuove */ 
 /* other boards like e.g. Crumb8, Crumb168 are using PB2 */

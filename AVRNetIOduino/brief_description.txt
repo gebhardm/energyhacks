@@ -5,7 +5,7 @@ The bootloader source file is taken from the Arduino 1.0.2 sources
 and is enhanced to work also with both an ATmega644P and ATmega32 on
 the Pollin AVR NetIO.
 
-Test was successful using the Sanguino w/ ATmega644P and Jean-Claude
+Test was successful using the AVRNetIO w/ ATmega644P and Jean-Claude
 Wippler's EtherCard implementation; note to change the select pin of the
 ethercard examples from default 8 to 4 (PB4 - or use the global variable SS).
 
@@ -14,26 +14,7 @@ but after fiddling two days with the Sanguino bootloader code and not
 succeeding (device ID not read?!), I tried to enhance the original Arduino
 bootloader from scratch and by that learn about its behavior.
 
-For use with an ATmega32 the Sanguino's boards.txt-file has been enhanced 
-by following entries:
-
-atmega32.name=Sanguino W/ ATmega32
-
-atmega32.upload.protocol=stk500
-atmega32.upload.maximum_size=30720
-atmega32.upload.speed=19200
-
-atmega32.bootloader.low_fuses=0xBF
-atmega32.bootloader.high_fuses=0xC8
-atmega32.bootloader.path=atmega
-atmega32.bootloader.file=ATmegaBOOT_168_32.hex
-atmega32.bootloader.unlock_bits=0xFF
-atmega32.bootloader.lock_bits=0xFF
-
-atmega32.build.mcu=atmega32
-atmega32.build.f_cpu=16000000L
-atmega32.build.core=arduino
-atmega32.build.variant=standard
+Put the AVRNetIO folder into the Arduino's hardware folder.
 
 The code is under the given sources license.
 

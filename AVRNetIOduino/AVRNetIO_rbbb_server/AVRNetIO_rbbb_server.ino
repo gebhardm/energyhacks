@@ -10,7 +10,7 @@ static byte mymac[] = {
   0x00,0x22,0xf9,0x01,0x2e,0x4a }; // Pollin AVR-NetIO
 //static byte myip[] = { 192,168,1,203 };
 
-byte Ethernet::buffer[900];
+byte Ethernet::buffer[1100];
 BufferFiller bfill;
 
 void setup () {
@@ -25,10 +25,14 @@ void setup () {
   // define direction of pins
   // ADC input
   // digital input
-  pinMode(24, INPUT); 
+  pinMode(24, INPUT); // set input 1 as input
+  digitalWrite(24, HIGH); // set internal pull-up
   pinMode(25, INPUT); 
+  digitalWrite(25, HIGH); 
   pinMode(26, INPUT); 
+  digitalWrite(26, HIGH);
   pinMode(27, INPUT); 
+  digitalWrite(27, HIGH);
   // digital output
   pinMode(16, OUTPUT);
   pinMode(17, OUTPUT);
@@ -48,25 +52,27 @@ static word homePage() {
     "Pragma: no-cache\r\n"
     "\r\n"
     "<title>Simple AVRNetIO webserver</title>" 
+    "<table border=1>"
     "<form method=get>"
-    "<input type=checkbox name=o1 value=1 $S>Output 1</input><br/>"
-    "<input type=checkbox name=o2 value=1 $S>Output 2</input><br/>"
-    "<input type=checkbox name=o3 value=1 $S>Output 3</input><br/>"
-    "<input type=checkbox name=o4 value=1 $S>Output 4</input><br/>"
-    "<input type=checkbox name=o5 value=1 $S>Output 5</input><br/>"
-    "<input type=checkbox name=o6 value=1 $S>Output 6</input><br/>"
-    "<input type=checkbox name=o7 value=1 $S>Output 7</input><br/>"
-    "<input type=checkbox name=o8 value=1 $S>Output 8</input><br/>"
-    "<input type=submit></input>"
+    "<tr><td><input type=checkbox name=o1 value=1 $S>Output 1</input></td>"
+    "<td><input type=checkbox name=o2 value=1 $S>Output 2</input></td></tr>"
+    "<tr><td><input type=checkbox name=o3 value=1 $S>Output 3</input></td>"
+    "<td><input type=checkbox name=o4 value=1 $S>Output 4</input></td></tr>"
+    "<tr><td><input type=checkbox name=o5 value=1 $S>Output 5</input></td>"
+    "<td><input type=checkbox name=o6 value=1 $S>Output 6</input></td></tr>"
+    "<tr><td><input type=checkbox name=o7 value=1 $S>Output 7</input></td>"
+    "<td><input type=checkbox name=o8 value=1 $S>Output 8</input></td></tr>"
+    "<tr><td>Input 1: $D</td>"
+    "<td>Input 2: $D</td></tr>"
+    "<tr><td>Input 3: $D</td>"
+    "<td>Input 4: $D</td></tr>"
+    "<tr><td>ADC1: $D</td>"
+    "<td>ADC2: $D</td></tr>"
+    "<tr><td>ADC3: $D</td>"
+    "<td>ADC4: $D</td></tr>"
+    "<tr><td colspan=2 align=center><input type=submit></input></td></tr>"
     "</form>"
-    "Input 1 $D<br/>"
-    "Input 2 $D<br/>"
-    "Input 3 $D<br/>"
-    "Input 4 $D<br/>"
-    "ADC1 $D<br/>"
-    "ADC2 $D<br/>"
-    "ADC3 $D<br/>"
-    "ADC4 $D<br/>"),
+    "</table>"),
   (digitalRead(16)?"checked":""),
   (digitalRead(17)?"checked":""),
   (digitalRead(18)?"checked":""),
@@ -114,6 +120,7 @@ void loop () {
     ether.httpServerReply(homePage()); // send web page data
   }
 }
+
 
 
 

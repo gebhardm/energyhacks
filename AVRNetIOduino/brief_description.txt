@@ -5,7 +5,7 @@ The bootloader source file is taken from the Arduino 1.0.2 sources
 and is enhanced to work also with both an ATmega644P and ATmega32 on
 the Pollin AVR NetIO.
 
-Test was successful using the AVRNetIO w/ ATmega644P and Jean-Claude
+Test was successful using the AVRNetIO w/ ATmega32 and 644P and Jean-Claude
 Wippler's EtherCard implementation; note to change the select pin of the
 ethercard examples from default 8 to 4 (PB4 - or use the global variable SS).
 

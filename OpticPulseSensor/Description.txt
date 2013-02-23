@@ -1,0 +1,9 @@
+Optic Pulse Sensor
+
+Use a NE567 to drive the LED of an optocoupler and detect corresponding reflections.
+
+This schematics is set up corresponding to the many standard layouts to build a light barrier.
+The frequency of the 567's oscillator is set to around 4 kHz, enough to prevent stray light
+irritations.
+
+Markus Gebhard, February 2013

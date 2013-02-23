@@ -15,7 +15,7 @@ heating and inlet of the warm water circulation) and to switch a pump on diverse
 temperature conditions as well as manually.
 Switching is done via a solid-state relais and UI is done via LCD using a solution to
 drive it serially as shown in some Elektor magazine article; nevertheless the
-corresponding routines are not copied but developed corresponding to the LCD spec - to
+corresponding routines are developed corresponding to the LCD spec - to
 really understand what happens. User interaction is done via three buttons: Menu selection
 and up and down.
 

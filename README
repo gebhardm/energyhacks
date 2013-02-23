@@ -12,6 +12,9 @@ Project structure:
 |
 |--- Netfrequency: Show the actual power grid frequency in a range of 50+/-0.2Hz
 |
+|--- OpticPulseSensor: Use a standard PLL schematics to optically detect pulses
+|                      from gas or water meters
+|
 |--- RS232-RS485-Converter: Convert legacy serial I/O to RS-485 with flow control 
 |
 `--- TempGuard: Use temperature sensors to control a warm water circulation pump

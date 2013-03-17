@@ -7,8 +7,7 @@
 
 // ethernet interface mac address, must be unique on the LAN
 static byte mymac[] = { 
-  0x00,0x22,0xf9,0x01,0x2e,0x4a }; // Pollin AVR-NetIO
-//static byte myip[] = { 192,168,1,203 };
+  0x00,0x22,0xf9,0x01,0x02,0x03 }; // use you Pollin AVR-NetIO-MAC
 
 byte Ethernet::buffer[1100];
 BufferFiller bfill;
@@ -120,9 +119,3 @@ void loop () {
     ether.httpServerReply(homePage()); // send web page data
   }
 }
-
-
-
-
-
-

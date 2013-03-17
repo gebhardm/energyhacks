@@ -3,3 +3,4 @@ default/
 #ignore the AVR Studio project files
 *.aws
 *.aps
+*.pptx

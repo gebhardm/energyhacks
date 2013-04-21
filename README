@@ -8,6 +8,8 @@ Project structure:
 |
 |--- AVRNetIOduino: Use the Pollin AVR NetIO board with the Arduino IDE
 |
+|--- ElektroCamp: Slides of talks held at Elektro Camp events
+|
 |--- Impulsformer: Convert analog input from a current clamp to S0-impulses/kWh
 |
 |--- Netfrequency: Show the actual power grid frequency in a range of 50+/-0.2Hz

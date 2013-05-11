@@ -9,6 +9,17 @@
 # for convenient http-communication install httplib2
 # for that please refer to http://code.google.com/p/httplib2/
 
+__author__ = "Markus Gebhard, Karlsruhe"
+__copyright__ = "Copyright May 2013"
+__credits__ = ["raspberrypi.org", "httplib2", "Simon Monk"]
+__license__ = "GPL"
+__version__ = "0.2"
+__maintainer__ = "Markus Gebhard"
+__email__ = "markus.gebhard@web.de"
+__status__ = "draft"
+
+# now the code
+
 import httplib2, MySQLdb, json, time, sys
 from datetime import datetime
 
@@ -63,9 +74,12 @@ while True:
             try:
                 # fetch data until read completely (had some errors here)
                 response, content = flm.request(req, 'GET', headers=headers)
-            except httplib2.IncompleteRead:
+            except httplib2.HttpLib2Error: # IncompleteRead:
                 error = True
-        data = json.loads(content)
+            if response.status == 200:   
+                data = json.loads(content)
+            else:
+                error = True
 # save sensor data in database        
         for timestamp, power in data:
             try:

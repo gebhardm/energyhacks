@@ -1,0 +1,5 @@
+This folder contains some programs and scripts to be used on a Raspberry Pi.
+First hack is a Python script to read local Fluksometer data and store this
+in a MySQL database for later assessment.
+
+More to come...

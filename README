@@ -17,6 +17,8 @@ Project structure:
 |--- OpticPulseSensor: Use a standard PLL schematics to optically detect pulses
 |                      from gas or water meters
 |
+|--- RaspberryPi: Some programs and scripts for use on a Raspberry Pi
+|
 |--- RS232-RS485-Converter: Convert legacy serial I/O to RS-485 with flow control 
 |
 `--- TempGuard: Use temperature sensors to control a warm water circulation pump

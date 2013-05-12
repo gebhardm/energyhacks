@@ -13,7 +13,7 @@ __author__ = "Markus Gebhard, Karlsruhe"
 __copyright__ = "Copyright May 2013"
 __credits__ = ["raspberrypi.org", "httplib2", "Simon Monk"]
 __license__ = "GPL"
-__version__ = "0.2"
+__version__ = "0.3"
 __maintainer__ = "Markus Gebhard"
 __email__ = "markus.gebhard@web.de"
 __status__ = "draft"
@@ -25,10 +25,10 @@ from datetime import datetime
 
 # data definitions
 # define your local sensor ids here - get them from flukso.net
-sensors = ('b1a04f62f20a9acec3481cd90a357ae5',
-           '830fefb0f0f898515b51266033e05fa6',
-           'c486171ab3865fec2ffabe12cd24ee73',
-           '0b5cf0a60f22093fade6ae86e2b561f8')
+sensors = (('b1a04f62f20a9acec3481cd90a357ae5','L1'),
+           ('830fefb0f0f898515b51266033e05fa6','L2'),
+           ('c486171ab3865fec2ffabe12cd24ee73','L3'),
+           ('0b5cf0a60f22093fade6ae86e2b561f8','PV'))
 # define your local FLM's url here - see FLM manual for details
 url = 'http://192.168.0.50:8080/sensor/'
 # define local query (there is just one option so far
@@ -65,9 +65,10 @@ except MySQLdb.Error, e:
 flm = httplib2.Http()
 while True:
 # query the sensors
-    for sensor in sensors:
+    for sensor, senid in sensors:
         req = url+sensor+query
         headers = { 'Accept':'application/json' }
+        # try until fetched a valid result
         error = True
         while error:
             error = False
@@ -83,6 +84,8 @@ while True:
 # save sensor data in database        
         for timestamp, power in data:
             try:
+                if power == 'nan':
+                    power = 0
                 # save values to database so that they occur only once each
                 # for that update already read sensor data within the last
                 # 30 seconds
@@ -91,7 +94,7 @@ while True:
                         ON DUPLICATE KEY UPDATE
                         timestamp = VALUES(timestamp),
                         power = VALUES(power)""",
-                        (sensor, str(datetime.fromtimestamp(timestamp)), power))
+                        (senid, str(datetime.fromtimestamp(timestamp)), power))
                 db.commit()
             except MySQLdb.Error, e:
                 print "Error %d: %s" % (e.args[0], e.args[1])

@@ -13,7 +13,7 @@ __author__ = "Markus Gebhard, Karlsruhe"
 __copyright__ = "Copyright May 2013"
 __credits__ = ["raspberrypi.org", "httplib2", "Simon Monk"]
 __license__ = "GPL"
-__version__ = "0.3"
+__version__ = "0.3.1"
 __maintainer__ = "Markus Gebhard"
 __email__ = "markus.gebhard@web.de"
 __status__ = "draft"
@@ -22,6 +22,15 @@ __status__ = "draft"
 
 import httplib2, MySQLdb, json, time, sys
 from datetime import datetime
+# prepare logging to see what happens in the background
+import logging
+
+logging.basicConfig(filename='flm_query.log',
+                    level=logging.DEBUG,
+                    filemode='a',
+                    format='%(asctime)s %(message)s',
+                    datefmt='%m/%d/%Y %H:%M:%S')
+logging.captureWarnings(True)
 
 # data definitions
 # define your local sensor ids here - get them from flukso.net
@@ -41,8 +50,7 @@ try:
                          passwd='raspberry',  # and password
                          db='flm')            # and database
 except MySQL.Error, e:
-    print 'Error %d: %s' % (e.args[0], e.args[1])
-    sys.exit (1)
+    handleError(e)
 
 # prepare table to write data into
 # create a table to store FLM values (if it does not exist)
@@ -58,8 +66,7 @@ try:
         )
         """)
 except MySQLdb.Error, e:
-    print "Error %d: %s" % (e.args[0], e.args[1])
-    sys.exit (1)
+    handleError(e)
     
 # prepare querying data from local FLM
 flm = httplib2.Http()
@@ -97,9 +104,14 @@ while True:
                         (senid, str(datetime.fromtimestamp(timestamp)), power))
                 db.commit()
             except MySQLdb.Error, e:
-                print "Error %d: %s" % (e.args[0], e.args[1])
-                sys.exit (1)
+                handleError(e)
 # wait for 30 seconds
     time.sleep(30)
 # note - this is done in an infinite loop for now; will go for a cron job
 # later...
+
+# routine to handle errors
+def handleError(e):
+    print "Error %d: %s" % (e.args[0], e.args[1])
+    logging.error('An error occured')
+    sys.exit (1)

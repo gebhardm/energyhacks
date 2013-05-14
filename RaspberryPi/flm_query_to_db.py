@@ -92,7 +92,7 @@ while True:
             else:
                 error = True
 # save sensor data in database        
-        for timestamp, power in data:
+        for (timestamp, power) in data:
             try:
                 if power == 'nan':
                     power = 0

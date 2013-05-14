@@ -82,7 +82,7 @@ while True:
             try:
                 # fetch data until read completely (had some errors here)
                 response, content = flm.request(req, 'GET', headers=headers)
-            except httplib2.HttpLib2Error, httplib.IncompleteRead:
+            except (httplib2.HttpLib2Error, httplib.IncompleteRead):
                 error = True
             if response.status == 200:
                 try:

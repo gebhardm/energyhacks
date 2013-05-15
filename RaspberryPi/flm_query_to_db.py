@@ -13,7 +13,7 @@ __author__ = "Markus Gebhard, Karlsruhe"
 __copyright__ = "Copyright May 2013"
 __credits__ = ["raspberrypi.org", "httplib2", "Simon Monk"]
 __license__ = "GPL"
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __maintainer__ = "Markus Gebhard"
 __email__ = "markus.gebhard@web.de"
 __status__ = "draft"
@@ -110,11 +110,16 @@ while True:
                 handleError(e)
 # wait for 30 seconds
     time.sleep(30)
-# note - this is done in an infinite loop for now; will go for a cron job
-# later...
+# note - this is done in an infinite loop for now
+# this may be removed to run the script via a cron job,
+# but cron goes down to 1 min only...
+# for warning reducement the "table exists" warning may
+# be stripped out - or any by
+# import warnings
+# warnings.filterwarnings('ignore')
 
 # routine to handle errors
 def handleError(e):
-    print "Error %d: %s" % (e.args[0], e.args[1])
-    logging.error('An error occured')
+#    print "Error %d: %s" % (e.args[0], e.args[1])
+    logging.error('Error %d: %s' % (e.args[0], e.args[1]))
     sys.exit (1)

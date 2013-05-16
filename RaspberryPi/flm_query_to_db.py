@@ -87,6 +87,7 @@ while True:
             if response.status == 200:
                 try:
                     data = json.loads(content)
+                    logging.info(content)
                 except ValueError:
                     error = True
             else:

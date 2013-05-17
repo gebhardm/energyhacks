@@ -19,18 +19,24 @@ __email__ = "markus.gebhard@web.de"
 __status__ = "draft"
 
 # now the code
-
-import httplib2, MySQLdb, json, time, sys
+# import http support
+import httplib2, httplib
+# import database support
+import MySQLdb, json
+# import relevant system functions
+import time, sys
 from datetime import datetime
 # prepare logging to see what happens in the background
-import logging
+import logging, warnings
 
 logging.basicConfig(filename='flm_query.log',
-                    level=logging.DEBUG,
+                    level = logging.ERROR, #level=logging.DEBUG,
                     filemode='a',
                     format='%(asctime)s %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S')
 logging.captureWarnings(True)
+# ignore warnings
+warnings.filterwarnings('ignore')
 
 # data definitions
 # define your local sensor ids here - get them from flukso.net
@@ -92,23 +98,26 @@ while True:
                     error = True
             else:
                 error = True
-# save sensor data in database        
-        for (timestamp, power) in data:
-            try:
-                if power == 'nan':
-                    power = 0
+# save sensor data in database;
+# note: the FLM seems to deliver just 0 if
+# there is no power determined (PV at night)
+        if data != 0:
+            for (timestamp, power) in data:
+                try:
+                    if power == 'nan':
+                        power = 0
                 # save values to database so that they occur only once each
                 # for that update already read sensor data within the last
                 # 30 seconds
-                cur.execute("""INSERT INTO flmdata (sensor, timestamp, power)
+                    cur.execute("""INSERT INTO flmdata (sensor, timestamp, power)
                         VALUES (%s,%s,%s)
                         ON DUPLICATE KEY UPDATE
                         timestamp = VALUES(timestamp),
                         power = VALUES(power)""",
                         (senid, str(datetime.fromtimestamp(timestamp)), power))
-                db.commit()
-            except MySQLdb.Error, e:
-                handleError(e)
+                    db.commit()
+                except MySQLdb.Error, e:
+                    handleError(e)
 # wait for 30 seconds
     time.sleep(30)
 # note - this is done in an infinite loop for now

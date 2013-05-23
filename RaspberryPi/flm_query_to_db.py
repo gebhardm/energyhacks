@@ -38,6 +38,11 @@ logging.captureWarnings(True)
 # ignore warnings, e.g. that table flmdata exists...
 warnings.filterwarnings('ignore')
 
+# handle a kill signal to make an educated end on "kill <pid>"
+import signal
+
+signal.signal(signal.SIGTERM, killHandler)
+
 # data definitions
 # define your local sensor ids here - get them from flukso.net
 # define a list of values (('<sensorid>','<sensor name for database>'),...)
@@ -129,6 +134,11 @@ while True:
 
 # routine to handle errors
 def handleError(e):
-#    print "Error %d: %s" % (e.args[0], e.args[1])
     logging.error('Error %d: %s' % (e.args[0], e.args[1]))
     sys.exit (1)
+
+# routine to properly end a job
+def killHandler(signum, stackframe):
+    db.close()
+    logging.info('Job ended')
+    sys.exit(0)

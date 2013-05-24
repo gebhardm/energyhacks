@@ -28,7 +28,22 @@ import time, sys
 from datetime import datetime
 # prepare logging to see what happens in the background
 import logging, warnings
+# import signal handling for external kill command
+import signal
 
+# now define used functions
+# routine to handle errors
+def handleError(e):
+    logging.error('Error %d: %s' % (e.args[0], e.args[1]))
+    sys.exit (1)
+
+# routine to properly end a job
+def killHandler(signum, stackframe):
+    db.close()
+    logging.info('Job ended')
+    sys.exit(0)
+
+# initialize output options
 logging.basicConfig(filename='flm_query.log',
                     level = logging.ERROR, #level=logging.DEBUG,
                     filemode='a',
@@ -39,8 +54,6 @@ logging.captureWarnings(True)
 warnings.filterwarnings('ignore')
 
 # handle a kill signal to make an educated end on "kill <pid>"
-import signal
-
 signal.signal(signal.SIGTERM, killHandler)
 
 # data definitions
@@ -131,14 +144,3 @@ while True:
 # but cron goes down to 1 min only...
 # with the infinite loop start the script to run also after logoff from RPi:
 # sudo nohup python flm_query_to_db.py &
-
-# routine to handle errors
-def handleError(e):
-    logging.error('Error %d: %s' % (e.args[0], e.args[1]))
-    sys.exit (1)
-
-# routine to properly end a job
-def killHandler(signum, stackframe):
-    db.close()
-    logging.info('Job ended')
-    sys.exit(0)

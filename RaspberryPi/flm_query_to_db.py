@@ -26,6 +26,8 @@ import MySQLdb, json
 # import relevant system functions
 import time, sys
 from datetime import datetime
+# for socket.error (occurred on FLM update -> connection refused)
+import socket
 # prepare logging to see what happens in the background
 import logging, warnings
 # import signal handling for external kill command
@@ -39,7 +41,8 @@ def handleError(e):
 
 # routine to properly end a job
 def killHandler(signum, stackframe):
-    db.close()
+    if db.open:
+        db.close()
     logging.info('Job ended')
     sys.exit(0)
 
@@ -55,6 +58,8 @@ warnings.filterwarnings('ignore')
 
 # handle a kill signal to make an educated end on "kill <pid>"
 signal.signal(signal.SIGTERM, killHandler)
+# handle Ctrl-C in online mode
+signal.signal(signal.SIGINT, killHandler)
 
 # data definitions
 # define your local sensor ids here - get them from flukso.net
@@ -107,8 +112,11 @@ while True:
             error = False
             try:
                 response, content = flm.request(req, 'GET', headers=headers)
-            except (httplib2.HttpLib2Error, httplib.IncompleteRead):
+            except (httplib2.HttpLib2Error,
+                    httplib.IncompleteRead,
+                    socket.error):
                 error = True
+                logging.error('Connection error occurred')
             if response.status == 200:
                 try:
                     data = json.loads(content)

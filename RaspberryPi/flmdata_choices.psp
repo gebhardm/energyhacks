@@ -46,7 +46,7 @@ PV = []
 
 if result:
 	for val in result:
-		reading  = [int(time.mktime(time.strptime(str(val[1]),'%Y-%m-%d %H:%M:%S'))), 
+		reading  = [time.mktime(time.strptime(str(val[1]),'%Y-%m-%d %H:%M:%S')) * 1000, 
 			    int(val[2])]
 		sensor = str(val[0])
 		if sensor == 'L1':

@@ -39,15 +39,16 @@ else:
 	cur.execute('SELECT * FROM flmdata WHERE timestamp>=%s and timestamp<=%s;',(fromStr, toStr))
 	result = cur.fetchall()
 db.close()
+L1 = []
+L2 = []
+L3 = []
+PV = []
 
 if result:
-	L1 = []
-	L2 = []
-	L3 = []
-	PV = []
 	for val in result:
-		reading  = [int(time.mktime(time.strptime(str(val[1]),'%Y-%m-%d %H:%M:%S'))), 
-			    int(val[2])]
+		timestamp = time.mktime(time.strptime(str(val[1]),'%Y-%m-%d %H:%M:%S')) * 1000
+		power = int(val[2])
+		reading  = [timestamp, power]
 		sensor = str(val[0])
 		if sensor == 'L1':
 			L1.append(reading)

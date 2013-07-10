@@ -5,7 +5,7 @@ difference the circulation pump is activated
 
 Uses an ATmega8
 
-Copyright 2009-2011 Markus Gebhard, Karlsruhe, Germany
+Copyright 2009-2013 Markus Gebhard, Karlsruhe, Germany
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,14 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ************************************************************************/
 #include "TempGuard.h"
 
-// Implementierungen
+// Implementations
 /***************************  ADC - Routinen ***************************/
 void init_ADC( void )
 {
 	ADCSRA = (1<<ADEN)|(3<<ADPS1); // Wandler ein, Taktteiler :64
 }
 
-// Analogwert lesen
+// read analog value
 int read_ADC( unsigned char channel )
 {
 	ADMUX  =  (1<<REFS0)|channel; 	// setze ADC Eingang gegen ARef=AVcc
@@ -135,9 +135,9 @@ void LCD_pos( unsigned char x, unsigned char y )
 
 void LCD_int( int n )
 {
-	unsigned char dig[5], num = 0, i; // verarbeite 5 stellige Zahl
+	unsigned char dig[5], num = 0, i; // compute 5 digit number
 	if (n<0) { LCD_text("-"); n = -n; }
-	if (n<10) LCD_text("0");        // sende führende Null
+	if (n<10) LCD_text("0");        // send leading zero
 	do
 	{
 		dig[num++] = ( n % 10 ) + 0x30;
@@ -179,28 +179,28 @@ void Schalte_Pumpe( char status )
 /*********************** Interruptverarbeitung ***********************/
 void init_TIMER( void )
 {
-	// Setze Timer0 (externer Takt an T0/PD4)
+	// Set Timer0 (external trigger at T0/PD4)
 	//TCCR0 |= (1<<CS02)|(1<<CS01)|(1<<CS00); // Ext.Takt T0, steigende Flanke
-	TCCR0 |= (1<<CS02)|(1<<CS01); // Ext.Takt T0, fallende Flanke
+	TCCR0 |= (1<<CS02)|(1<<CS01); // Ext.Takt T0, falling edge
 	TCNT0 = TCLOCK;
 	// Timer Interrupt
-	TIMSK  |= (1<<TOIE0); // Interrupt Timer0 Überlauf
+	TIMSK  |= (1<<TOIE0); // Interrupt Timer0 overflow
 }
 
-// Überlauf von Timer0
+// interrupt routine on timer0 overflow
 SIGNAL(SIG_OVERFLOW0)
 {
-	TCNT0 = TCLOCK;   // Zurücksetzen von Timer0
-	//Zeitverarbeitung
+	TCNT0 = TCLOCK;   // reset Timer0
+	// compute time
 	Zeit.Sek++;
 	if (Zeit.Sek==60) { Zeit.Sek=0; Zeit.Min++; }
 	if (Zeit.Min==60) { Zeit.Min=0; Zeit.Std++; }
 	if (Zeit.Std==24) Zeit.Std=0;
-	// Sekunden, die die Hintergrundbeleuchtung
+	// seconds backlight on
 	if (LCD_PIN & (1<<LCD_LIGHT)) Bkl++; else Bkl=0;
-	// Sekunden, die die Pumpe an ist
+	// seconds pump on
 	if (SW_PIN & (1<<PUMPE)) Lfz++; else Lfz=0;
-	//Pumpe per Temperatur steuern, falls nicht Manuellbetrieb
+	// control pump by temperature if not in manual mode
 	if (Menu!=MAXMENU)
 	{
 		SampleCnt++;
@@ -236,7 +236,10 @@ void Verwalte_Pumpe( void )
 	// Zirkulationsleitung warm genug
 	if (T_Zi >= T_Zi_max) Pumpe = 0;
 	// Pumpenlaufzeit überschritten
-	if (Lfz >= t_Lauf) Pumpe = 0;	
+	if (Lfz >= t_Lauf) {
+	   Pumpe = 0;
+	   if (Menu == MAXMENU) Menu = 1; // return to automatic mode 
+	}
 	// Warmwasser kühlt ab
 	if ((deltaTww < 0) || (deltaTmax > 0)) Pumpe = 0;
 	// Warmwasserleitung abgekühlt: T_max zurücksetzen
@@ -409,7 +412,7 @@ int main( void )
 	Menu = 1;
 	// Anzeigesteuerung
 	LCD_init();
-	LCD_text("Version 3.10");
+	LCD_text("Version 3.10.1");
 	_delay_ms(1000);
 	LCD_clear();
 	// Timer und Interrupts

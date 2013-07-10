@@ -1,3 +1,5 @@
+/* TempGuard.h version 3.10.1 */
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -75,4 +77,3 @@ void LCD_init( void );
 void LCD_text( char* );
 void LCD_pos( unsigned char, unsigned char );
 void LCD_int( int );
-void Schalte_Licht( char );

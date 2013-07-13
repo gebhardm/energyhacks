@@ -23,19 +23,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TempGuard.h"
 
 // Implementations
-/***************************  ADC - Routinen ***************************/
+/***************************  ADC - Routines ***************************/
 void init_ADC( void )
 {
-	ADCSRA = (1<<ADEN)|(3<<ADPS1); // Wandler ein, Taktteiler :64
+	ADCSRA = (1<<ADEN)|(3<<ADPS1); // AD converter on, divider :64
 }
 
 // read analog value
 int read_ADC( unsigned char channel )
 {
-	ADMUX  =  (1<<REFS0)|channel; 	// setze ADC Eingang gegen ARef=AVcc
-	ADCSRA |= (1<<ADSC);          	// starte Wandlung
-	while (ADCSRA & (1<<ADSC)) { }	// warte bis Wandlung abgeschlossen
-	return((int)(55*ADCW/100-180)); // KTY81-110 linear gegen 1k8
+	ADMUX  =  (1<<REFS0)|channel; 	// set ADC input to ARef=AVcc
+	ADCSRA |= (1<<ADSC);          	// start conversion
+	while (ADCSRA & (1<<ADSC)) { }	// wait for conversion to end
+	return((int)(55*ADCW/100-180)); // KTY81-110 linear towards 1k8 resistor
 }
 
 /*********************Begin of LCD routines***************************/
@@ -144,7 +144,6 @@ void LCD_int( int n )
 		n = n / 10;
 	} while (n != 0);
 	for (i=num;i;i--) LCD_write( RS_DATA, dig[i-1]);
-	//LCD_write( RS_DATA, 0x20 );
 }
 
 void Schalte_Licht( char status )
@@ -158,7 +157,7 @@ void Schalte_Licht( char status )
 void init_switch( void )
 {
 	// PUMP output
-	SW_DDR |= (1<<PUMPE);
+	SW_DDR |= (1<<PUMP);
 	// Pump off
 	Schalte_Pumpe(0);
 }
@@ -176,11 +175,11 @@ void Schalte_Pumpe( char status )
 }
 
 
-/*********************** Interruptverarbeitung ***********************/
+/*********************** Interrupt handling ***********************/
 void init_TIMER( void )
 {
 	// Set Timer0 (external trigger at T0/PD4)
-	//TCCR0 |= (1<<CS02)|(1<<CS01)|(1<<CS00); // Ext.Takt T0, steigende Flanke
+	//TCCR0 |= (1<<CS02)|(1<<CS01)|(1<<CS00); // Ext.Takt T0, rising edge
 	TCCR0 |= (1<<CS02)|(1<<CS01); // Ext.Takt T0, falling edge
 	TCNT0 = TCLOCK;
 	// Timer Interrupt
@@ -188,7 +187,7 @@ void init_TIMER( void )
 }
 
 // interrupt routine on timer0 overflow
-SIGNAL(SIG_OVERFLOW0)
+ISR (TIMER0_OVF_vect)
 {
 	TCNT0 = TCLOCK;   // reset Timer0
 	// compute time
@@ -199,7 +198,7 @@ SIGNAL(SIG_OVERFLOW0)
 	// seconds backlight on
 	if (LCD_PIN & (1<<LCD_LIGHT)) Bkl++; else Bkl=0;
 	// seconds pump on
-	if (SW_PIN & (1<<PUMPE)) Lfz++; else Lfz=0;
+	if (SW_PIN & (1<<PUMP)) Lfz++; else Lfz=0;
 	// control pump by temperature if not in manual mode
 	if (Menu!=MAXMENU)
 	{
@@ -212,58 +211,58 @@ SIGNAL(SIG_OVERFLOW0)
 	}
 }
 
-/************************************ Schaltwerk *************************/
+/************************************ switch conditions *************************/
 void Verwalte_Pumpe( void )
 {
-	// lokale Variablen
-	int deltaTwz, deltaTww, deltaTmax;
+	// local variables
+	int deltaTwz, deltaTww, deltaTmax; // differences of temperature
 	char Pumpe = 0;
-	// Temperaturmessung
-	T_Ww = read_ADC(0x00);  // lese Analogwert von ADC0 - Warmwasser
-	T_Zi = read_ADC(0x01);  // lese Analogwert von ADC1 - Zirkulation
-	// Temperaturdifferenzen
-	deltaTwz = T_Ww - T_Zi;			// Warmwasser zu Zirkulation
-	deltaTww = T_Ww - T_last;		// Warmwasser zur letzten Messung
+	// Temperature measurement
+	T_Ww = read_ADC(0x00);  // read ADC0 - warm water
+	T_Zi = read_ADC(0x01);  // read ADC1 - circulation
+	// Temperature differences
+	deltaTwz = T_Ww - T_Zi;			// warm water to circulation
+	deltaTww = T_Ww - T_last;		// warm water to last measurement
 	if (T_max < T_Ww) T_max = T_Ww;
-	deltaTmax = T_max - T_Ww;		// Warmwasser zur Maximaltemperatur
-	/******* Anschaltkriterium für Pumpe *******/
+	deltaTmax = T_max - T_Ww;		// warm water to maximum temperature
+	/******* pump on conditions *******/
 	if ((T_Ww > T_Zi) && 
 		(T_Ww >= T_Ww_min) && 
 		(T_Zi < T_Zi_max) &&
 		(deltaTwz >= dT_an)) { Pumpe = 1; }
-	if ((SW_PIN & (1<<PUMPE)) && (deltaTwz > dT_aus)) Pumpe = 1;
-	/******* Abschaltkriterien *******/
-	// Zirkulationsleitung warm genug
+	if ((SW_PIN & (1<<PUMP)) && (deltaTwz > dT_aus)) Pumpe = 1;
+	/******* pump off conditions *******/
+	// circulation warm enough
 	if (T_Zi >= T_Zi_max) Pumpe = 0;
-	// Pumpenlaufzeit überschritten
+	// pump runtime exceeded
 	if (Lfz >= t_Lauf) {
 	   Pumpe = 0;
 	   if (Menu == MAXMENU) Menu = 1; // return to automatic mode 
 	}
-	// Warmwasser kühlt ab
+	// warm water cools down
 	if ((deltaTww < 0) || (deltaTmax > 0)) Pumpe = 0;
-	// Warmwasserleitung abgekühlt: T_max zurücksetzen
+	// warm water cooled down: reset T_max (don't keep the circulation warm)
 	if (T_Ww < T_Ww_min) T_max = T_Ww;
-	// Temperatur sichern
+	// save temperature
 	T_last = T_Ww;
-	// Schalten
+	// switch pump
 	if (Pumpe) Schalte_Pumpe(1); else Schalte_Pumpe(0);
 }
 
-/************************************ Benutzerführung ********************/
+/************************************ user control ********************/
 void Benutzer( void )
 {
 	unsigned char buttons, nokey;
 	nokey   = ((1<<MINUS)|(1<<ENTER)|(1<<PLUS));
 	buttons = (BUT_PIN & nokey);
-	// Wertausgabe an LCD
+	// values to LCD
 	LCD_home();
-	// Licht einschalten bei Tastendruck
+	// background light on on button pressed
 	if (buttons != nokey)
 	{
 		Schalte_Licht(1);
 		Bkl = 0;
-		// Grundwerte ändern
+		// basic values changed
 		if (!(BUT_PIN & (1<<ENTER)))
 		{
 			Menu++; 
@@ -273,35 +272,35 @@ void Benutzer( void )
 	}
 	switch (Menu)
 	{
-	// Temperaturanzeige
+	// Temperature display
 	case 1: 
 		LCD_text("Warm: "); LCD_int(T_Ww);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text("Zirk: "); LCD_int(T_Zi);
+		LCD_text("Circ: "); LCD_int(T_Zi);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
-	// Sollwert dT_an
+	// To be value: dT_an
 	case 2: 
 		if (!(BUT_PIN & (1<<PLUS))) dT_an++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_an--;
-		LCD_text("*dT(an): "); LCD_int(dT_an);
+		LCD_text("*dT(on): "); LCD_int(dT_an);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text(" dT(aus):"); LCD_int(dT_aus);
+		LCD_text(" dT(off):"); LCD_int(dT_aus);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
-	// Sollwert dT_aus
+	// To be value: dT_aus
 	case 3: 
 		if (!(BUT_PIN & (1<<PLUS))) dT_aus++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_aus--;
-		LCD_text(" dT(an): "); LCD_int(dT_an);
+		LCD_text(" dT(on): "); LCD_int(dT_an);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text("*dT(aus):"); LCD_int(dT_aus);
+		LCD_text("*dT(off):"); LCD_int(dT_aus);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
-	// Uhr
+	// Clock
 	case 4:
 		if (!(BUT_PIN & (1<<PLUS)))
 		{
@@ -318,7 +317,7 @@ void Benutzer( void )
 		LCD_int(Zeit.Min); LCD_text(":");
 		LCD_int(Zeit.Sek); LCD_text("   ");
 		break;
-	// Maximale Zirkulationstemperatur
+	// Maximum circulation temperature
 	case 5:
 		if (!(BUT_PIN & (1<<PLUS))) T_Zi_max++;
 		else if (!(BUT_PIN & (1<<MINUS))) T_Zi_max--;
@@ -331,7 +330,7 @@ void Benutzer( void )
 		LCD_text(" WwMin: "); LCD_int(T_Ww_min);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
-	// Minimal Warmwassertemperatur
+	// Minimum circulation temperature
 	case 6:
 		if (!(BUT_PIN & (1<<PLUS))) T_Ww_min++;
 		else if (!(BUT_PIN & (1<<MINUS))) T_Ww_min--;
@@ -357,11 +356,11 @@ void Benutzer( void )
 		}
 		LCD_text("Reset");
 		LCD_pos(1,2);
-		LCD_text("an "); LCD_int(dT_an);
-		LCD_write(RS_DATA,0xdf); LCD_text("C aus "); LCD_int(dT_aus);
+		LCD_text("on "); LCD_int(dT_an);
+		LCD_write(RS_DATA,0xdf); LCD_text("C off "); LCD_int(dT_aus);
 		LCD_write(RS_DATA,0xdf); LCD_text("C ");
 		break;
-	// Anzeige der gemessenen Maximaltemperatur
+	// display measured maximum temperature
 	case 8:
 		if (!(BUT_PIN & ((1<<PLUS)|(1<<MINUS)))) T_max = 0;
 		LCD_text("*MaxTemp: "); LCD_int(T_max);
@@ -370,7 +369,7 @@ void Benutzer( void )
 		LCD_text(" dT_max: "); LCD_int(dT_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
-	// Abstand bis Maximaltemperatur
+	// difference to maximum temperature
 	case 9:
 		if (!(BUT_PIN & (1<<PLUS))) dT_max++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_max--;
@@ -380,45 +379,45 @@ void Benutzer( void )
 		LCD_text("*dT_max: "); LCD_int(dT_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
-	// Manuelle Steuerung
+	// manual control
 	case MAXMENU:
 		if (!(BUT_PIN & (1<<PLUS))) Schalte_Pumpe(1);
 		else if (!(BUT_PIN & (1<<MINUS))) Schalte_Pumpe(0);
 		LCD_text("Manuell ");
 		if (SW_PIN & (1<<PUMPE)) LCD_text("an "); else LCD_text("aus");
-		//unterdrücke Rücksprung ins Menü 1
+		//suppress to jump back to menu 1
 		Bkl = 0;
 		break;
 	}
-	//Delta-Temperaturen bereinigen: nicht kleiner als Null und Aus > Ein
+	//Delta-Temperatures cleansing: not less than zero and off > on
 	if (dT_aus < 1) dT_aus = 0;
 	if (dT_an <= dT_aus) dT_an = dT_aus + 1;
 	if (dT_max < 0) dT_max = 0; 
-	//Hintergrundbeleuchtung
+	//background light
 	if (Bkl>=LICHT) 
 	{
-		Schalte_Licht(0);	// Nach Laufzeit abschalten
-		Menu = 1;			// Temperaturanzeige
+		Schalte_Licht(0);	// switch off after maximum background light runtime
+		Menu = 1;			// go back to temperature display 
 	}
 }
 
-/***************************** Hauptprogramm ***************************/
+/***************************** main programme ***************************/
 int main( void )
 {
-	// Initialisierung
+	// Initialization
 	init_ADC();
 	init_switch();
 	init_button();
 	Menu = 1;
-	// Anzeigesteuerung
+	// Display control
 	LCD_init();
 	LCD_text("Version 3.10.1");
 	_delay_ms(1000);
 	LCD_clear();
-	// Timer und Interrupts
+	// Timer and Interrupts
 	init_TIMER();
 	sei();
-	// Programm-Hauptschleife
+	// Programme main loop
 	while (1)
 	{
 		_delay_ms(250);

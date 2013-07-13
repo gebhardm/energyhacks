@@ -4,52 +4,52 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#define SW_DDR DDRB				// Datenrichtung für Schalterport
-#define SW_PORT PORTB			// Port für Schalter
-#define SW_PIN PINB				// Lesen der gesetzten Schalter
-#define PUMPE PB1				// Pin für Pumpenschalter
+#define SW_DDR DDRB				// direction of switch port
+#define SW_PORT PORTB			// port of switches
+#define SW_PIN PINB				// read set switches
+#define PUMP PB1				// pin of pump switch
 
-#define BUT_DDR	DDRB			// Datenrichtung für Eingabetaster
-#define BUT_PORT PORTB			// Port für Taster
-#define BUT_PIN PINB			// Lesen der Taster
-#define PLUS PB5				// (+)-Taste
-#define ENTER PB4				// Eingabetaste
-#define MINUS PB3				// (-)-Taste
+#define BUT_DDR	DDRB			// direction of button port
+#define BUT_PORT PORTB			// port of buttons
+#define BUT_PIN PINB			// read buttons
+#define PLUS PB5				// (+)-button
+#define ENTER PB4				// enter button
+#define MINUS PB3				// (-)-button
 
-#define LAUFZEIT 300			// maximale Pumpenlaufzeit in Sekunden
-#define DT_AN 10				// Pumpe an bei 10K Differenz
-#define DT_AUS 5				// Pumpe aus bei 5K Differenz
-#define DT_MAX 10				// Abstand zur Maximaltemperatur für Pumpe aus
-#define WW_MIN 40				// Minimaltemperatur für Zirkulation
-#define ZI_MAX 40				// Maximaltemperatur für Zirkulation
-#define T_DOWN 15				// Temperaturbegrenzung untere Schranke
-#define T_UP 95					// Temperaturbegrenzung obere Schranke
-#define TCLOCK 206				// Timerstart 50Hz Sek >> 256-50
-#define SMPL 5					// Sampling alle SMPL Sekunden
+#define RUNTIME 300				// maximum runtime of pump in seconds
+#define DT_AN 10				// pump on at 10 Kelvin difference
+#define DT_AUS 5				// pump off at 5 Kelvin difference
+#define DT_MAX 10				// difference to maximum temperature at pump off
+#define WW_MIN 40				// minimal temperature of circulation
+#define ZI_MAX 40				// maximum temperature of circulation
+#define T_DOWN 15				// temperature lower limit
+#define T_UP 95					// temperature upper limit
+#define TCLOCK 206				// Timer start 50Hz: Second >> 256-50
+#define SMPL 5					// Sampling all SMPL seconds
 
-#define LCD_DDR	DDRD			// Datenrichtung für LCD
-#define LCD_PORT PORTD			// Port für LCD
-#define LCD_PIN PIND			// Lesen des LCD Ports
-#define LCD_CLK PD6				// Clock-Pin für Schieberegister
-#define LCD_DATA PD5			// Daten-Pin für Schieberegister
-#define LCD_LIGHT PD7			// Hintergrundbeleuchtung
-#define RS_CMD 0				// Sende Kommando an LCD
-#define RS_DATA 1				// Sende Daten an LCD
-#define LICHT 60				// Zeit für Hintergrundbeleuchtung
-#define MAXMENU 10				// Anzahl der Menüs; letztes immer manuell
+#define LCD_DDR	DDRD			// direction of LCD port
+#define LCD_PORT PORTD			// port of LCD
+#define LCD_PIN PIND			// read LCD port
+#define LCD_CLK PD6				// clock-pin of shift register
+#define LCD_DATA PD5			// data-pin of shift register
+#define LCD_LIGHT PD7			// background light
+#define RS_CMD 0				// send command to LCD
+#define RS_DATA 1				// send data to LCD
+#define LICHT 60				// time background light on
+#define MAXMENU 10				// number of menus; last one is always "manual control"
 
-volatile unsigned char SampleCnt;		// Zähler bis nächstes Sampling 
-volatile int T_Ww, T_Zi;				// gemessene Temperaturen für Warmwasser und Zirkulation
-volatile int T_max;						// gemessene Maximaltemperatur
-volatile int T_last;					// letzte gemessene Temperatur
-volatile int dT_an = DT_AN;				// DeltaTemp für Pumpe an
-volatile int dT_aus = DT_AUS;			// DeltaTemp für Pumpe aus
-volatile int dT_max = DT_MAX;			// DeltaTemp zu MaxTemp für Pumpe aus
-volatile int T_Zi_max = ZI_MAX;			// Maximaltemperatur der Zirkulation
-volatile int T_Ww_min = WW_MIN;			// Minimaltemperatur der Zirkulation
-volatile unsigned int Lfz = 0;			// Laufzeit der Pumpe
-volatile unsigned int t_Lauf = LAUFZEIT;// Maximallaufzeit der Pumpe
-volatile unsigned char Bkl = 0;			// Laufzeit Hintergrundbeleuchtung
+volatile unsigned char SampleCnt;		// counter to next sampling
+volatile int T_Ww, T_Zi;				// measured temperatures of warm water and circulation
+volatile int T_max;						// measured maximum temperature
+volatile int T_last;					// last measured temperature
+volatile int dT_an = DT_AN;				// DeltaTemp of pump on
+volatile int dT_aus = DT_AUS;			// DeltaTemp of pump off
+volatile int dT_max = DT_MAX;			// DeltaTemp to MaxTemp of pump off
+volatile int T_Zi_max = ZI_MAX;			// maximum temperature of circulation
+volatile int T_Ww_min = WW_MIN;			// minimum temperature of circulation
+volatile unsigned int Lfz = 0;			// runtime of pump
+volatile unsigned int t_Lauf = LAUFZEIT;// maximum runtime of pump
+volatile unsigned char Bkl = 0;			// runtime background light
 volatile struct time_struct {
 	unsigned char Std:5;
 	unsigned char Min:6;

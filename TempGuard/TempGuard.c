@@ -3,7 +3,7 @@ By two KTY81 temperature sensors the outgoing and circulation
 temperature of the warm water supply is measured and at a defined
 difference the circulation pump is activated
 
-Uses an ATmega8
+Uses an ATmega8 with internal 8MHz oscillator
 
 Copyright 2009-2013 Markus Gebhard, Karlsruhe, Germany
 
@@ -385,6 +385,8 @@ void User( void )
 		else if (!(BUT_PIN & (1<<MINUS))) Switch_pump(0);
 		LCD_text("Manual ");
 		if (SW_PIN & (1<<PUMP)) LCD_text("on "); else LCD_text("off");
+		LCD_pos(1,2);
+		LCD_text("Pump runs "); LCD_int(Rnt); LCD_text("sec");
 		//suppress to jump back to menu 1
 		Bkl = 0;
 		break;
@@ -411,7 +413,7 @@ int main( void )
 	Menu = 1;
 	// Display control
 	LCD_init();
-	LCD_text("Version 3.10.2");
+	LCD_text("Version 3.10.3");
 	_delay_ms(1000);
 	LCD_clear();
 	// Timer and Interrupts

@@ -1,4 +1,4 @@
-/* TempGuard.h version 3.10.2 */
+/* TempGuard.h version 3.10.3 */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -20,8 +20,8 @@
 #define DT_ON 10				// pump on at 10 Kelvin difference
 #define DT_OFF 5				// pump off at 5 Kelvin difference
 #define DT_MAX 10				// difference to maximum temperature at pump off
-#define WW_MIN 40				// minimal temperature of circulation
-#define CI_MAX 40				// maximum temperature of circulation
+#define WW_MIN 40				// minimal temperature of warm water to start
+#define CI_MAX 30				// maximum temperature of circulation
 #define T_DOWN 15				// temperature lower limit
 #define T_UP 95					// temperature upper limit
 #define TCLOCK 206				// Timer start 50Hz: Second >> 256-50

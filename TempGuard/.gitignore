@@ -1,0 +1,6 @@
+# ignore the default AVR Studiobuild directory
+default/
+#ignore the AVR Studio project files
+*.aws
+*.aps
+*.pptx

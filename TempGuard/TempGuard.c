@@ -146,7 +146,7 @@ void LCD_int( int n )
 	for (i=num;i;i--) LCD_write( RS_DATA, dig[i-1]);
 }
 
-void Schalte_Licht( char status )
+void Switch_light( char status )
 {
 	if (status) LCD_PORT |= (1<<LCD_LIGHT);
 	else LCD_PORT &= ~(1<<LCD_LIGHT);
@@ -159,7 +159,7 @@ void init_switch( void )
 	// PUMP output
 	SW_DDR |= (1<<PUMP);
 	// Pump off
-	Schalte_Pumpe(0);
+	Switch_pump(0);
 }
 
 void init_button( void )
@@ -168,10 +168,10 @@ void init_button( void )
 	BUT_PORT |= (1<<PLUS)|(1<<ENTER)|(1<<MINUS);    // internal Pullup
 }
 
-void Schalte_Pumpe( char status )
+void Switch_pump( char state )
 {
-	if (status) SW_PORT |= (1<<PUMPE);
-	else SW_PORT &= ~(1<<PUMPE);
+	if (state) SW_PORT |= (1<<PUMP);
+	else SW_PORT &= ~(1<<PUMP);
 }
 
 
@@ -191,14 +191,14 @@ ISR (TIMER0_OVF_vect)
 {
 	TCNT0 = TCLOCK;   // reset Timer0
 	// compute time
-	Zeit.Sek++;
-	if (Zeit.Sek==60) { Zeit.Sek=0; Zeit.Min++; }
-	if (Zeit.Min==60) { Zeit.Min=0; Zeit.Std++; }
-	if (Zeit.Std==24) Zeit.Std=0;
+	Time.Sec++;
+	if (Time.Sec==60) { Time.Sec=0; Time.Min++; }
+	if (Time.Min==60) { Time.Min=0; Time.Hrs++; }
+	if (Time.Hrs==24) Time.Hrs=0;
 	// seconds backlight on
 	if (LCD_PIN & (1<<LCD_LIGHT)) Bkl++; else Bkl=0;
 	// seconds pump on
-	if (SW_PIN & (1<<PUMP)) Lfz++; else Lfz=0;
+	if (SW_PIN & (1<<PUMP)) Rnt++; else Rnt=0;
 	// control pump by temperature if not in manual mode
 	if (Menu!=MAXMENU)
 	{
@@ -206,51 +206,51 @@ ISR (TIMER0_OVF_vect)
 		if (SampleCnt==SMPL)
 		{
 			SampleCnt = 0;
-			Verwalte_Pumpe();
+			Control_pump();
 		}
 	}
 }
 
 /************************************ switch conditions *************************/
-void Verwalte_Pumpe( void )
+void Control_pump( void )
 {
 	// local variables
-	int deltaTwz, deltaTww, deltaTmax; // differences of temperature
-	char Pumpe = 0;
+	int deltaTwc, deltaTww, deltaTmax; // differences of temperature
+	char Pump = 0;
 	// Temperature measurement
 	T_Ww = read_ADC(0x00);  // read ADC0 - warm water
-	T_Zi = read_ADC(0x01);  // read ADC1 - circulation
+	T_Ci = read_ADC(0x01);  // read ADC1 - circulation
 	// Temperature differences
-	deltaTwz = T_Ww - T_Zi;			// warm water to circulation
+	deltaTwc = T_Ww - T_Ci;			// warm water to circulation
 	deltaTww = T_Ww - T_last;		// warm water to last measurement
 	if (T_max < T_Ww) T_max = T_Ww;
 	deltaTmax = T_max - T_Ww;		// warm water to maximum temperature
 	/******* pump on conditions *******/
-	if ((T_Ww > T_Zi) && 
+	if ((T_Ww > T_Ci) && 
 		(T_Ww >= T_Ww_min) && 
-		(T_Zi < T_Zi_max) &&
-		(deltaTwz >= dT_an)) { Pumpe = 1; }
-	if ((SW_PIN & (1<<PUMP)) && (deltaTwz > dT_aus)) Pumpe = 1;
+		(T_Ci < T_Ci_max) &&
+		(deltaTwc >= dT_on)) { Pump = 1; }
+	if ((SW_PIN & (1<<PUMP)) && (deltaTwc > dT_off)) Pump = 1;
 	/******* pump off conditions *******/
 	// circulation warm enough
-	if (T_Zi >= T_Zi_max) Pumpe = 0;
+	if (T_Ci >= T_Ci_max) Pump = 0;
 	// pump runtime exceeded
-	if (Lfz >= t_Lauf) {
-	   Pumpe = 0;
+	if (Rnt >= t_run) {
+	   Pump = 0;
 	   if (Menu == MAXMENU) Menu = 1; // return to automatic mode 
 	}
 	// warm water cools down
-	if ((deltaTww < 0) || (deltaTmax > 0)) Pumpe = 0;
+	if ((deltaTww < 0) || (deltaTmax > 0)) Pump = 0;
 	// warm water cooled down: reset T_max (don't keep the circulation warm)
 	if (T_Ww < T_Ww_min) T_max = T_Ww;
 	// save temperature
 	T_last = T_Ww;
 	// switch pump
-	if (Pumpe) Schalte_Pumpe(1); else Schalte_Pumpe(0);
+	if (Pump) Switch_pump(1); else Switch_pump(0);
 }
 
 /************************************ user control ********************/
-void Benutzer( void )
+void User( void )
 {
 	unsigned char buttons, nokey;
 	nokey   = ((1<<MINUS)|(1<<ENTER)|(1<<PLUS));
@@ -260,7 +260,7 @@ void Benutzer( void )
 	// background light on on button pressed
 	if (buttons != nokey)
 	{
-		Schalte_Licht(1);
+		Switch_light(1);
 		Bkl = 0;
 		// basic values changed
 		if (!(BUT_PIN & (1<<ENTER)))
@@ -277,54 +277,54 @@ void Benutzer( void )
 		LCD_text("Warm: "); LCD_int(T_Ww);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text("Circ: "); LCD_int(T_Zi);
+		LCD_text("Circ: "); LCD_int(T_Ci);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
-	// To be value: dT_an
+	// To be value: dT_on
 	case 2: 
-		if (!(BUT_PIN & (1<<PLUS))) dT_an++;
-		else if (!(BUT_PIN & (1<<MINUS))) dT_an--;
-		LCD_text("*dT(on): "); LCD_int(dT_an);
+		if (!(BUT_PIN & (1<<PLUS))) dT_on++;
+		else if (!(BUT_PIN & (1<<MINUS))) dT_on--;
+		LCD_text("*dT(on): "); LCD_int(dT_on);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text(" dT(off):"); LCD_int(dT_aus);
+		LCD_text(" dT(off):"); LCD_int(dT_off);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
-	// To be value: dT_aus
+	// To be value: dT_off
 	case 3: 
-		if (!(BUT_PIN & (1<<PLUS))) dT_aus++;
-		else if (!(BUT_PIN & (1<<MINUS))) dT_aus--;
-		LCD_text(" dT(on): "); LCD_int(dT_an);
+		if (!(BUT_PIN & (1<<PLUS))) dT_off++;
+		else if (!(BUT_PIN & (1<<MINUS))) dT_off--;
+		LCD_text(" dT(on): "); LCD_int(dT_on);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text("*dT(off):"); LCD_int(dT_aus);
+		LCD_text("*dT(off):"); LCD_int(dT_off);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// Clock
 	case 4:
 		if (!(BUT_PIN & (1<<PLUS)))
 		{
-			Zeit.Min++; if (Zeit.Min==60) Zeit.Min=0;
-			Zeit.Sek=0;
+			Time.Min++; if (Time.Min==60) Time.Min=0;
+			Time.Sec=0;
 		}
 		if (!(BUT_PIN & (1<<MINUS)))
 		{
-			Zeit.Std++; if (Zeit.Std==24) Zeit.Std=0;
+			Time.Hrs++; if (Time.Hrs==24) Time.Hrs=0;
 		}
 		LCD_text("Uhrzeit ");
 		LCD_pos(1,2);
-		LCD_int(Zeit.Std); LCD_text(":");
-		LCD_int(Zeit.Min); LCD_text(":");
-		LCD_int(Zeit.Sek); LCD_text("   ");
+		LCD_int(Time.Hrs); LCD_text(":");
+		LCD_int(Time.Min); LCD_text(":");
+		LCD_int(Time.Sec); LCD_text("   ");
 		break;
 	// Maximum circulation temperature
 	case 5:
-		if (!(BUT_PIN & (1<<PLUS))) T_Zi_max++;
-		else if (!(BUT_PIN & (1<<MINUS))) T_Zi_max--;
-		if (T_Zi_max > T_UP) T_Zi_max = T_UP;
-		if (T_Zi_max < T_DOWN) T_Zi_max = T_DOWN;
+		if (!(BUT_PIN & (1<<PLUS))) T_Ci_max++;
+		else if (!(BUT_PIN & (1<<MINUS))) T_Ci_max--;
+		if (T_Ci_max > T_UP) T_Ci_max = T_UP;
+		if (T_Ci_max < T_DOWN) T_Ci_max = T_DOWN;
 		LCD_text("*ZirkMax: ");
-		LCD_int(T_Zi_max);
+		LCD_int(T_Ci_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
 		LCD_text(" WwMin: "); LCD_int(T_Ww_min);
@@ -336,8 +336,8 @@ void Benutzer( void )
 		else if (!(BUT_PIN & (1<<MINUS))) T_Ww_min--;
 		if (T_Ww_min > T_UP) T_Ww_min = T_UP;
 		if (T_Ww_min < T_DOWN) T_Ww_min = T_DOWN;
-		LCD_text(" ZirkMax: ");
-		LCD_int(T_Zi_max);
+		LCD_text(" CircMax: ");
+		LCD_int(T_Ci_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
 		LCD_text("*WwMin: "); LCD_int(T_Ww_min);
@@ -347,17 +347,17 @@ void Benutzer( void )
 	case 7:
 		if (!(BUT_PIN & ((1<<PLUS)|(1<<MINUS))))
 		{
-			dT_an = DT_AN;
-			dT_aus = DT_AUS;
-			T_Zi_max = ZI_MAX;
+			dT_on = DT_ON;
+			dT_off = DT_OFF;
+			T_Ci_max = CI_MAX;
 			T_Ww_min = WW_MIN;
 			T_max = T_Ww;
 			dT_max = DT_MAX;
 		}
 		LCD_text("Reset");
 		LCD_pos(1,2);
-		LCD_text("on "); LCD_int(dT_an);
-		LCD_write(RS_DATA,0xdf); LCD_text("C off "); LCD_int(dT_aus);
+		LCD_text("on "); LCD_int(dT_on);
+		LCD_write(RS_DATA,0xdf); LCD_text("C off "); LCD_int(dT_off);
 		LCD_write(RS_DATA,0xdf); LCD_text("C ");
 		break;
 	// display measured maximum temperature
@@ -381,22 +381,22 @@ void Benutzer( void )
 		break;
 	// manual control
 	case MAXMENU:
-		if (!(BUT_PIN & (1<<PLUS))) Schalte_Pumpe(1);
-		else if (!(BUT_PIN & (1<<MINUS))) Schalte_Pumpe(0);
-		LCD_text("Manuell ");
-		if (SW_PIN & (1<<PUMPE)) LCD_text("an "); else LCD_text("aus");
+		if (!(BUT_PIN & (1<<PLUS))) Switch_pump(1);
+		else if (!(BUT_PIN & (1<<MINUS))) Switch_pump(0);
+		LCD_text("Manual ");
+		if (SW_PIN & (1<<PUMP)) LCD_text("on "); else LCD_text("off");
 		//suppress to jump back to menu 1
 		Bkl = 0;
 		break;
 	}
 	//Delta-Temperatures cleansing: not less than zero and off > on
-	if (dT_aus < 1) dT_aus = 0;
-	if (dT_an <= dT_aus) dT_an = dT_aus + 1;
+	if (dT_off < 1) dT_off = 0;
+	if (dT_on <= dT_off) dT_on = dT_off + 1;
 	if (dT_max < 0) dT_max = 0; 
 	//background light
-	if (Bkl>=LICHT) 
+	if (Bkl>=LIGHT) 
 	{
-		Schalte_Licht(0);	// switch off after maximum background light runtime
+		Switch_light(0);	// switch off after maximum background light runtime
 		Menu = 1;			// go back to temperature display 
 	}
 }
@@ -411,7 +411,7 @@ int main( void )
 	Menu = 1;
 	// Display control
 	LCD_init();
-	LCD_text("Version 3.10.1");
+	LCD_text("Version 3.10.2");
 	_delay_ms(1000);
 	LCD_clear();
 	// Timer and Interrupts
@@ -421,7 +421,7 @@ int main( void )
 	while (1)
 	{
 		_delay_ms(250);
-		Benutzer();
+		User();
 	}
 	return(0);
 }

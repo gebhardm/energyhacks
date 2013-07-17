@@ -1,4 +1,4 @@
-/* TempGuard.h version 3.10.3 */
+/* TempGuard.h version 3.10.4 */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -48,7 +48,7 @@ volatile int dT_max = DT_MAX;			// DeltaTemp to MaxTemp of pump off
 volatile int T_Ci_max = CI_MAX;			// maximum temperature of circulation
 volatile int T_Ww_min = WW_MIN;			// minimum temperature of circulation
 volatile unsigned int Rnt = 0;			// runtime of pump
-volatile unsigned int t_run = RUNTIME;// maximum runtime of pump
+volatile unsigned int t_run = RUNTIME;  // maximum runtime of pump
 volatile unsigned char Bkl = 0;			// runtime background light
 volatile struct time_struct {
 	unsigned char Hrs:5;

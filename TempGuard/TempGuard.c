@@ -199,15 +199,12 @@ ISR (TIMER0_OVF_vect)
 	if (LCD_PIN & (1<<LCD_LIGHT)) Bkl++; else Bkl=0;
 	// seconds pump on
 	if (SW_PIN & (1<<PUMP)) Rnt++; else Rnt=0;
-	// control pump by temperature if not in manual mode
-	if (Menu!=MAXMENU)
+	// control pump by temperature or manual control
+	SampleCnt++;
+	if (SampleCnt==SMPL)
 	{
-		SampleCnt++;
-		if (SampleCnt==SMPL)
-		{
-			SampleCnt = 0;
-			Control_pump();
-		}
+		SampleCnt = 0;
+		Control_pump();
 	}
 }
 
@@ -216,35 +213,44 @@ void Control_pump( void )
 {
 	// local variables
 	int deltaTwc, deltaTww, deltaTmax; // differences of temperature
-	char Pump = 0;
-	// Temperature measurement
-	T_Ww = read_ADC(0x00);  // read ADC0 - warm water
-	T_Ci = read_ADC(0x01);  // read ADC1 - circulation
-	// Temperature differences
-	deltaTwc = T_Ww - T_Ci;			// warm water to circulation
-	deltaTww = T_Ww - T_last;		// warm water to last measurement
-	if (T_max < T_Ww) T_max = T_Ww;
-	deltaTmax = T_max - T_Ww;		// warm water to maximum temperature
-	/******* pump on conditions *******/
-	if ((T_Ww > T_Ci) && 
-		(T_Ww >= T_Ww_min) && 
-		(T_Ci < T_Ci_max) &&
-		(deltaTwc >= dT_on)) { Pump = 1; }
-	if ((SW_PIN & (1<<PUMP)) && (deltaTwc > dT_off)) Pump = 1;
-	/******* pump off conditions *******/
-	// circulation warm enough
-	if (T_Ci >= T_Ci_max) Pump = 0;
-	// pump runtime exceeded
-	if (Rnt >= t_run) {
-	   Pump = 0;
-	   if (Menu == MAXMENU) Menu = 1; // return to automatic mode 
+	char Pump;
+	Pump = (SW_PIN & (1<<PUMP));  	   // current pump condition
+	// check manual mode
+	if (Menu==MAXMENU)
+	{
+	 	if (Rnt>=t_run)
+		{
+			Pump = 0;
+			Menu = 1;
+		} 
 	}
-	// warm water cools down
-	if ((deltaTww < 0) || (deltaTmax > 0)) Pump = 0;
-	// warm water cooled down: reset T_max (don't keep the circulation warm)
-	if (T_Ww < T_Ww_min) T_max = T_Ww;
-	// save temperature
-	T_last = T_Ww;
+	// check temperature
+	else
+	{
+		// Temperature measurement
+		T_Ww = read_ADC(0x00);  // read ADC0 - warm water
+		T_Ci = read_ADC(0x01);  // read ADC1 - circulation
+		// Temperature differences
+		deltaTwc = T_Ww - T_Ci;			// warm water to circulation
+		deltaTww = T_Ww - T_last;		// warm water to last measurement
+		if (T_max < T_Ww) T_max = T_Ww;
+		deltaTmax = T_max - T_Ww;		// warm water to maximum temperature
+		/******* pump on conditions *******/
+		if ((T_Ww > T_Ci) && 
+			(T_Ww >= T_Ww_min) && 
+			(T_Ci < T_Ci_max) &&
+			(deltaTwc >= dT_on)) { Pump = 1; }
+		if ((SW_PIN & (1<<PUMP)) && (deltaTwc > dT_off)) Pump = 1;
+		/******* pump off conditions *******/
+		// circulation warm enough
+		if (T_Ci >= T_Ci_max) Pump = 0;
+		// warm water cools down
+		if ((deltaTww < 0) || (deltaTmax > 0)) Pump = 0;
+		// warm water cooled down: reset T_max (don't keep the circulation warm)
+		if (T_Ww < T_Ww_min) T_max = T_Ww;
+		// save temperature
+		T_last = T_Ww;
+	}
 	// switch pump
 	if (Pump) Switch_pump(1); else Switch_pump(0);
 }
@@ -284,20 +290,20 @@ void User( void )
 	case 2: 
 		if (!(BUT_PIN & (1<<PLUS))) dT_on++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_on--;
-		LCD_text("*dT(on): "); LCD_int(dT_on);
+		LCD_text("*dT(on)  "); LCD_int(dT_on);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text(" dT(off):"); LCD_int(dT_off);
+		LCD_text(" dT(off) "); LCD_int(dT_off);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// To be value: dT_off
 	case 3: 
 		if (!(BUT_PIN & (1<<PLUS))) dT_off++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_off--;
-		LCD_text(" dT(on): "); LCD_int(dT_on);
+		LCD_text(" dT(on)  "); LCD_int(dT_on);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text("*dT(off):"); LCD_int(dT_off);
+		LCD_text("*dT(off) "); LCD_int(dT_off);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// Clock
@@ -323,11 +329,11 @@ void User( void )
 		else if (!(BUT_PIN & (1<<MINUS))) T_Ci_max--;
 		if (T_Ci_max > T_UP) T_Ci_max = T_UP;
 		if (T_Ci_max < T_DOWN) T_Ci_max = T_DOWN;
-		LCD_text("*ZirkMax: ");
+		LCD_text("*CircMax ");
 		LCD_int(T_Ci_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text(" WwMin: "); LCD_int(T_Ww_min);
+		LCD_text(" WwMin   "); LCD_int(T_Ww_min);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// Minimum circulation temperature
@@ -336,11 +342,11 @@ void User( void )
 		else if (!(BUT_PIN & (1<<MINUS))) T_Ww_min--;
 		if (T_Ww_min > T_UP) T_Ww_min = T_UP;
 		if (T_Ww_min < T_DOWN) T_Ww_min = T_DOWN;
-		LCD_text(" CircMax: ");
+		LCD_text(" CircMax ");
 		LCD_int(T_Ci_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text("*WwMin: "); LCD_int(T_Ww_min);
+		LCD_text("*WwMin   "); LCD_int(T_Ww_min);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// Reset
@@ -363,20 +369,20 @@ void User( void )
 	// display measured maximum temperature
 	case 8:
 		if (!(BUT_PIN & ((1<<PLUS)|(1<<MINUS)))) T_max = 0;
-		LCD_text("*MaxTemp: "); LCD_int(T_max);
+		LCD_text("*MaxTemp "); LCD_int(T_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text(" dT_max: "); LCD_int(dT_max);
+		LCD_text(" dT_max  "); LCD_int(dT_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// difference to maximum temperature
 	case 9:
 		if (!(BUT_PIN & (1<<PLUS))) dT_max++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_max--;
-		LCD_text(" MaxTemp: "); LCD_int(T_max);
+		LCD_text(" MaxTemp "); LCD_int(T_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text("*dT_max: "); LCD_int(dT_max);
+		LCD_text("*dT_max  "); LCD_int(dT_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// manual control
@@ -386,7 +392,7 @@ void User( void )
 		LCD_text("Manual ");
 		if (SW_PIN & (1<<PUMP)) LCD_text("on "); else LCD_text("off");
 		LCD_pos(1,2);
-		LCD_text("Pump runs "); LCD_int(Rnt); LCD_text("sec");
+		LCD_text("Pump on "); LCD_int(Rnt); LCD_text("sec");
 		//suppress to jump back to menu 1
 		Bkl = 0;
 		break;
@@ -413,7 +419,7 @@ int main( void )
 	Menu = 1;
 	// Display control
 	LCD_init();
-	LCD_text("Version 3.10.3");
+	LCD_text("Version 3.10.4");
 	_delay_ms(1000);
 	LCD_clear();
 	// Timer and Interrupts

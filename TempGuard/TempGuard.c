@@ -20,6 +20,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ************************************************************************/
+// This file verion: 3.10.5 - correction of jump back from manul
+/************************************************************************/
 #include "TempGuard.h"
 
 // Implementations
@@ -222,6 +224,7 @@ void Control_pump( void )
 		{
 			Pump = 0;
 			Menu = 1;
+			LCD_clear();
 		} 
 	}
 	// check temperature
@@ -280,10 +283,10 @@ void User( void )
 	{
 	// Temperature display
 	case 1: 
-		LCD_text("Warm: "); LCD_int(T_Ww);
+		LCD_text("Warm "); LCD_int(T_Ww);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
-		LCD_text("Circ: "); LCD_int(T_Ci);
+		LCD_text("Circ "); LCD_int(T_Ci);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// To be value: dT_on
@@ -317,7 +320,7 @@ void User( void )
 		{
 			Time.Hrs++; if (Time.Hrs==24) Time.Hrs=0;
 		}
-		LCD_text("Uhrzeit ");
+		LCD_text("Time ");
 		LCD_pos(1,2);
 		LCD_int(Time.Hrs); LCD_text(":");
 		LCD_int(Time.Min); LCD_text(":");
@@ -419,7 +422,7 @@ int main( void )
 	Menu = 1;
 	// Display control
 	LCD_init();
-	LCD_text("Version 3.10.4");
+	LCD_text("Version 3.10.5");
 	_delay_ms(1000);
 	LCD_clear();
 	// Timer and Interrupts

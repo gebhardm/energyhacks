@@ -20,7 +20,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ************************************************************************/
-// This file verion: 3.10.5 - correction of jump back from manul
+// This file version: 4.0 - reduced to the necessary
 /************************************************************************/
 #include "TempGuard.h"
 
@@ -218,7 +218,7 @@ void Control_pump( void )
 	char Pump;
 	Pump = (SW_PIN & (1<<PUMP));  	   // current pump condition
 	// check manual mode
-	if (Menu==MAXMENU)
+	if (Menu==MENU_MAN)
 	{
 	 	if (Rnt>=t_run)
 		{
@@ -275,14 +275,14 @@ void User( void )
 		if (!(BUT_PIN & (1<<ENTER)))
 		{
 			Menu++; 
-			if (Menu>MAXMENU) Menu = 1; 
+			if (Menu>MENU_MAN) Menu = MENU_TEMP; 
 			LCD_clear();
 		}
 	}
 	switch (Menu)
 	{
 	// Temperature display
-	case 1: 
+	case MENU_TEMP: 
 		LCD_text("Warm "); LCD_int(T_Ww);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
@@ -290,7 +290,7 @@ void User( void )
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// To be value: dT_on
-	case 2: 
+	case MENU_DTON: 
 		if (!(BUT_PIN & (1<<PLUS))) dT_on++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_on--;
 		LCD_text("*dT(on)  "); LCD_int(dT_on);
@@ -300,7 +300,7 @@ void User( void )
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// To be value: dT_off
-	case 3: 
+	case MENU_DTOFF: 
 		if (!(BUT_PIN & (1<<PLUS))) dT_off++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_off--;
 		LCD_text(" dT(on)  "); LCD_int(dT_on);
@@ -310,7 +310,8 @@ void User( void )
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// Clock
-	case 4:
+#ifdef MENU_CLOCK
+	case MENU_CLOCK:
 		if (!(BUT_PIN & (1<<PLUS)))
 		{
 			Time.Min++; if (Time.Min==60) Time.Min=0;
@@ -326,8 +327,9 @@ void User( void )
 		LCD_int(Time.Min); LCD_text(":");
 		LCD_int(Time.Sec); LCD_text("   ");
 		break;
+#endif
 	// Maximum circulation temperature
-	case 5:
+	case MENU_CMAX:
 		if (!(BUT_PIN & (1<<PLUS))) T_Ci_max++;
 		else if (!(BUT_PIN & (1<<MINUS))) T_Ci_max--;
 		if (T_Ci_max > T_UP) T_Ci_max = T_UP;
@@ -340,7 +342,7 @@ void User( void )
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// Minimum circulation temperature
-	case 6:
+	case MENU_CMIN:
 		if (!(BUT_PIN & (1<<PLUS))) T_Ww_min++;
 		else if (!(BUT_PIN & (1<<MINUS))) T_Ww_min--;
 		if (T_Ww_min > T_UP) T_Ww_min = T_UP;
@@ -353,7 +355,7 @@ void User( void )
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
 	// Reset
-	case 7:
+	case MENU_RESET:
 		if (!(BUT_PIN & ((1<<PLUS)|(1<<MINUS))))
 		{
 			dT_on = DT_ON;
@@ -370,16 +372,19 @@ void User( void )
 		LCD_write(RS_DATA,0xdf); LCD_text("C ");
 		break;
 	// display measured maximum temperature
-	case 8:
+	case MENU_TMAX:
 		if (!(BUT_PIN & ((1<<PLUS)|(1<<MINUS)))) T_max = 0;
 		LCD_text("*MaxTemp "); LCD_int(T_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
+#ifdef MENU_DTMAX		
 		LCD_pos(1,2);
 		LCD_text(" dT_max  "); LCD_int(dT_max);
-		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
+		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
+#endif		
 		break;
 	// difference to maximum temperature
-	case 9:
+#ifdef MENU_DTMAX
+	case MENU_DTMAX:
 		if (!(BUT_PIN & (1<<PLUS))) dT_max++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_max--;
 		LCD_text(" MaxTemp "); LCD_int(T_max);
@@ -388,15 +393,16 @@ void User( void )
 		LCD_text("*dT_max  "); LCD_int(dT_max);
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
 		break;
+#endif
 	// manual control
-	case MAXMENU:
+	case MENU_MAN:
 		if (!(BUT_PIN & (1<<PLUS))) Switch_pump(1);
 		else if (!(BUT_PIN & (1<<MINUS))) Switch_pump(0);
 		LCD_text("Manual ");
 		if (SW_PIN & (1<<PUMP)) LCD_text("on "); else LCD_text("off");
 		LCD_pos(1,2);
 		LCD_text("Pump on "); LCD_int(Rnt); LCD_text("sec");
-		//suppress to jump back to menu 1
+		//suppress to jump back to menu MENU_TEMP
 		Bkl = 0;
 		break;
 	}
@@ -408,7 +414,7 @@ void User( void )
 	if (Bkl>=LIGHT) 
 	{
 		Switch_light(0);	// switch off after maximum background light runtime
-		Menu = 1;			// go back to temperature display 
+		Menu = MENU_TEMP;	// go back to temperature display 
 	}
 }
 
@@ -419,16 +425,16 @@ int main( void )
 	init_ADC();
 	init_switch();
 	init_button();
-	Menu = 1;
+	Menu = MENU_TEMP;
 	// Display control
 	LCD_init();
-	LCD_text("Version 3.10.5");
+	LCD_text("Version 4.0");
 	_delay_ms(1000);
 	LCD_clear();
 	// Timer and Interrupts
 	init_TIMER();
 	sei();
-	// Programme main loop
+	// Program main loop
 	while (1)
 	{
 		_delay_ms(250);

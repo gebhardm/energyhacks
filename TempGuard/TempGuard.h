@@ -1,4 +1,4 @@
-/* TempGuard.h version 3.10.4 */
+/* TempGuard.h version 4.0 */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -36,7 +36,17 @@
 #define RS_CMD 0				// send command to LCD
 #define RS_DATA 1				// send data to LCD
 #define LIGHT 60				// time background light on
-#define MAXMENU 10				// number of menus; last one is always "manual control"
+// Menu definition
+#define MENU_TEMP 1
+#define MENU_DTON 2
+#define MENU_DTOFF 3
+//#define MENU_CLOCK 4
+#define MENU_CMAX 4
+#define MENU_CMIN 5
+#define MENU_RESET 6
+#define MENU_TMAX 7
+//#define MENU_DTMAX 9
+#define MENU_MAN 8				// number of menus; last one is always "manual control"
 
 volatile unsigned char SampleCnt;		// counter to next sampling
 volatile int T_Ww, T_Ci;				// measured temperatures of warm water and circulation

@@ -3,7 +3,7 @@ PV DC-AC converter installed. It has a RS-485 interface to read it out with
 some software provided by the vendor - but no PC had a RS-485 interface, but
 "pure old legacy RS-232". After some research there are two solutions to
 interfacing RS-485 with "legacy" RS-232.
-1) RS-232-RS485 is a converter that uses RTS/CTS for flow control; the transistor
+1) RS232-RS485 is a converter that uses RTS/CTS for flow control; the transistor
    is used to configure actual flow control (on high or on low, depending on the
    terminal program used)
 2) RS485auto is a converter that creates flow control from the baudrate and

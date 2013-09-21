@@ -379,11 +379,9 @@ void User( void )
 #ifdef MENU_DTMAX		
 		LCD_pos(1,2);
 		LCD_text(" dT_max  "); LCD_int(dT_max);
-		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
-#endif		
+		LCD_write(RS_DATA,0xdf); LCD_text("C  ");		
 		break;
 	// difference to maximum temperature
-#ifdef MENU_DTMAX
 	case MENU_DTMAX:
 		if (!(BUT_PIN & (1<<PLUS))) dT_max++;
 		else if (!(BUT_PIN & (1<<MINUS))) dT_max--;
@@ -391,9 +389,9 @@ void User( void )
 		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
 		LCD_pos(1,2);
 		LCD_text("*dT_max  "); LCD_int(dT_max);
-		LCD_write(RS_DATA,0xdf); LCD_text("C  ");   
+		LCD_write(RS_DATA,0xdf); LCD_text("C  ");
+#endif		
 		break;
-#endif
 	// manual control
 	case MENU_MAN:
 		if (!(BUT_PIN & (1<<PLUS))) Switch_pump(1);

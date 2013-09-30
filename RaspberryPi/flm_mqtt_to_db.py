@@ -42,7 +42,7 @@ def handleError(e):
 def killHandler(signum, stackframe):
     if db.open:
         db.close()
-	mqttc.disconnect()
+    mqttc.disconnect()
     logging.info('Job ended')
     sys.exit(0)
 
@@ -53,10 +53,10 @@ def on_connect(mosq, obj, rc):
 def on_message(mosq, obj, msg):
 #   get sensor id from received topic post
     (na, sen, senid, typ) = msg.topic.split('/')
-#	determine the sensor's measured power
-    (timestamp, power, unit) = json.loads(msg.payload)	
+#   determine the sensor's measured power
+    (timestamp, power, unit) = json.loads(msg.payload)  
     logging.info(sensors[senid]+' '+str(datetime.fromtimestamp(timestamp))+' '+str(power)+' '+str(unit))
-#	write measurement to database
+#   write measurement to database
     try:
         cur.execute("""INSERT INTO flmdata (sensor, timestamp, power)
                     VALUES (%s,%s,%s)
@@ -125,14 +125,15 @@ mqttc.on_publish = on_publish
 mqttc.on_subscribe = on_subscribe
 
 while True:
-#	connect to FLM - use your local IP address here
-	mqttc.connect("192.168.0.50", 1883, 60)
-#	subscribe to sensor gauges corresponding to definition
-	for sensor in sensors:
-		mqttc.subscribe("/sensor/"+str(sensor)+"/gauge", 0)
-#	now loop for the messages subscribed to
-	rc = 0
-	while rc == 0:
-		rc = mqttc.loop()
-#	note: if there is a connection loss there should be a reconnect
-#	this for now is solved with the infinite loop here
+#   connect to FLM - use your local IP address here
+    mqttc.connect("192.168.0.50", 1883, 60)
+#   subscribe to sensor gauges corresponding to definition
+    for sensor in sensors:
+        mqttc.subscribe("/sensor/"+str(sensor)+"/gauge", 0)
+#   now loop for the messages subscribed to
+    rc = 0
+    while rc == 0:
+        rc = mqttc.loop()
+    logging.error('MQTT client ended with RC = '+str(rc))
+#   note: if there is a connection loss there should be a reconnect
+#   this for now is solved with the infinite loop here

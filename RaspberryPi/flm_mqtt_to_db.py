@@ -2,28 +2,31 @@
 
 #In parts copyright (c) 2010,2011 Roger Light <roger@atchoo.org>
 #
-#This Python script instatiates a MQTT client connecting to a Fluksometer
+#This Python script instantiates a MQTT client connecting to a Fluksometer
 #It subscribes to the sensor topics and pushes the received sensor data into
 #a mySQL database
 
 __author__ = "Markus Gebhard, Karlsruhe"
 __copyright__ = "Copyright September 2013"
-__credits__ = ["raspberrypi.org", "MQTT", "Simon Monk"]
+__credits__ = ["raspberrypi.org", "mqtt.org", "mosquitto.org", "Simon Monk"]
 __license__ = "GPL"
-__version__ = "0.1"
+__version__ = "0.2"
 __maintainer__ = "Markus Gebhard"
 __email__ = "markus.gebhard@web.de"
 __status__ = "draft"
 
+# import MQTT access capability
 import mosquitto
+# import access to MySQL database and json string formatting
 import MySQLdb, json
+# get routines to handle date and time data
 from datetime import datetime
 # prepare logging to see what happens in the background
 import logging, warnings
 # import signal handling for external kill command and system access
 import signal, sys
 
-#global data definitions
+#global data definitions - define your sensor IDs here and provide them a name
 sensors = {'b1a04f62f20a9acec3481cd90a357ae5':'L1',
            '830fefb0f0f898515b51266033e05fa6':'L2',
            'c486171ab3865fec2ffabe12cd24ee73':'L3',
@@ -39,16 +42,21 @@ def handleError(e):
 def killHandler(signum, stackframe):
     if db.open:
         db.close()
+	mqttc.disconnect()
     logging.info('Job ended')
     sys.exit(0)
+
 #routines for MQTT handling
 def on_connect(mosq, obj, rc):
     logging.info("rc: "+str(rc))
 
 def on_message(mosq, obj, msg):
+#   get sensor id from received topic post
     (na, sen, senid, typ) = msg.topic.split('/')
-    (timestamp, power, unit) = json.loads(msg.payload)
+#	determine the sensor's measured power
+    (timestamp, power, unit) = json.loads(msg.payload)	
     logging.info(sensors[senid]+' '+str(datetime.fromtimestamp(timestamp))+' '+str(power)+' '+str(unit))
+#	write measurement to database
     try:
         cur.execute("""INSERT INTO flmdata (sensor, timestamp, power)
                     VALUES (%s,%s,%s)
@@ -84,9 +92,9 @@ signal.signal(signal.SIGTERM, killHandler)
 # handle Ctrl-C in online mode
 signal.signal(signal.SIGINT, killHandler)
 
-# connect to database
+# connect to database - be aware to have a database "flm" created
 try:
-    db = MySQLdb.connect(host='localhost', # whereever you located your db
+    db = MySQLdb.connect(host='localhost', # wherever you located your db
                          user='root', # use your convenient user
                          passwd='raspberry', # and password
                          db='flm') # and database
@@ -116,12 +124,15 @@ mqttc.on_connect = on_connect
 mqttc.on_publish = on_publish
 mqttc.on_subscribe = on_subscribe
 
-#connect to FLM
-mqttc.connect("192.168.0.50", 1883, 60)
-#subscribe to sensor gauges
-for sensor in sensors:
-    mqttc.subscribe("/sensor/"+str(sensor)+"/gauge", 0)
-
-rc = 0
-while rc == 0:
-    rc = mqttc.loop()
+while True:
+#	connect to FLM - use your local IP address here
+	mqttc.connect("192.168.0.50", 1883, 60)
+#	subscribe to sensor gauges corresponding to definition
+	for sensor in sensors:
+		mqttc.subscribe("/sensor/"+str(sensor)+"/gauge", 0)
+#	now loop for the messages subscribed to
+	rc = 0
+	while rc == 0:
+		rc = mqttc.loop()
+#	note: if there is a connection loss there should be a reconnect
+#	this for now is solved with the infinite loop here

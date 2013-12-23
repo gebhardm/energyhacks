@@ -35,10 +35,11 @@ LiquidCrystal lcd(8,9,4,5,6,7);
 // Konstantendefinitionen (damit der Optimierer was zu tun hat)
 #define UREF 5.0  // Referenzspannung des AD-Wandlers
 #define IMP 20  // Pulse pro kWh => muss auch im Solarlog eingestellt werden
-#define PPEAK 2050.0  // Spitzenleistung der Quelle in kW
+//#define PPEAK 2050.0  // Spitzenleistung der Quelle in kW
+#define PPEAK 3000.0 // Spitzenleistung erfassbar per 20mA-Signal
 #define WMS 3600000U // eine kWh in Kilowatt Millisekunde
-#define UNENN 690.0 // Nennspannung des Windrads
-#define AMAX 3000.0 // Maximalstrom der Stromklemme => 690V*3000A=2,07MW 
+//#define UNENN 690.0 // Nennspannung des Windrads
+//#define AMAX 3000.0 // Maximalstrom der Stromklemme => 690V*3000A=2,07MW 
 
 //Variablen
 int state; // Status des Debug-Schalters
@@ -46,7 +47,7 @@ boolean debug; // Debug-Einstellung
 unsigned long T, lastT; // gemessene Zeit in Millisekunden; Achtung: Overflow nach 50 Tagen
 unsigned int  value; // gemessener Analogwert
 float Uin; // korrespondierende Eingangsspannung
-unsigned int P, lastP; // ermittelte Leistungswerte
+int P, lastP; // ermittelte Leistungswerte
 unsigned long E; // ermittele Energie
 unsigned long pulseconst; // aufgelaufene Energie für einen Puls
 
@@ -79,9 +80,10 @@ void loop() {
   value = analogRead(Pin_Uin);
   Uin = (float) (value / 1023.0) * UREF; // gemessene Spannung propotional zur Leistung
   // gemessene aktuelle Leistung in kW
-  // P = (unsigned int) (PPEAK / UREF) * Uin;
+  // P = (int) (PPEAK / UREF) * Uin;
+  P = (int) ((PPEAK / UREF) * Uin - 100); // Offset -100kW@0mA
   // falls die 20mA gerade nicht der Leistung, sondern der Stromstärke entsprechen
-  P = (unsigned int) (AMAX * UNENN / UREF / 1000.0) * Uin;
+  // P = (unsigned int) (AMAX * UNENN / UREF / 1000.0) * Uin;
   // Momentanleistung und Energie auf LCD ausgeben
   lcd.setCursor(0,0);
   lcd.print("Power: ");
@@ -99,7 +101,7 @@ void loop() {
     Serial.println(Uin);
   }
   // jetzt Integration durchführen: erzeugte Energie ermitteln
-  if (T > lastT)
+  if ((T > lastT) && P > 0)
   {
     // Trapezregel: I(f)a|b ~ (b-a)/2 * (f(a) + f (b))
     // Ermittelte Energie im letzten MIllisekundenintervall -> W ms
@@ -122,16 +124,6 @@ void loop() {
     }
   }  
   lastT = T; // letzte Zeit sichern für Integration
-  lastP = P; // letzte Leistung sichern für Integration
+  if (P>=0) lastP = P;
+  else lastP = 0; // letzte Leistung sichern für Integration
 }
-
-
-
-
-
-
-
-
-
-
-

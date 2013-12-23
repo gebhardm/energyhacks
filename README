@@ -6,6 +6,8 @@ consumption control, etc.
 
 Project structure:
 |
+|--- Arduino: Sketches for the Arduino
+|
 |--- AVRNetIOduino: Use the Pollin AVR NetIO board with the Arduino IDE
 |
 |--- ElektroCamp: Slides of talks held at Elektro Camp events

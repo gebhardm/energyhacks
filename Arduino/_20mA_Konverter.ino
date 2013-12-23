@@ -101,7 +101,7 @@ void loop() {
     Serial.println(Uin);
   }
   // jetzt Integration durchführen: erzeugte Energie ermitteln
-  if ((T > lastT) && P > 0)
+  if ((T > lastT) && (P > 0))
   {
     // Trapezregel: I(f)a|b ~ (b-a)/2 * (f(a) + f (b))
     // Ermittelte Energie im letzten MIllisekundenintervall -> W ms

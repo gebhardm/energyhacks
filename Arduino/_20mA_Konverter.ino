@@ -36,8 +36,9 @@ LiquidCrystal lcd(8,9,4,5,6,7);
 #define UREF 5.0  // Referenzspannung des AD-Wandlers
 #define IMP 20  // Pulse pro kWh => muss auch im Solarlog eingestellt werden
 //#define PPEAK 2050.0  // Spitzenleistung der Quelle in kW
-#define PPEAK 3000.0 // Spitzenleistung erfassbar per 20mA-Signal
-#define WMS 3600000U // eine kWh in Kilowatt Millisekunde
+#define PPEAK 3000.0 // Spitzenleistung in kW erfassbar per 20mA-Signal
+#define OFFSET -100.0 // Offset für Nicht-Null-kW ohne Erzeugung 
+#define KWMS 3600000U // eine kWh in Kilowatt Millisekunde
 //#define UNENN 690.0 // Nennspannung des Windrads
 //#define AMAX 3000.0 // Maximalstrom der Stromklemme => 690V*3000A=2,07MW 
 
@@ -47,7 +48,7 @@ boolean debug; // Debug-Einstellung
 unsigned long T, lastT; // gemessene Zeit in Millisekunden; Achtung: Overflow nach 50 Tagen
 unsigned int  value; // gemessener Analogwert
 float Uin; // korrespondierende Eingangsspannung
-int P, lastP; // ermittelte Leistungswerte
+long P, lastP; // ermittelte Leistungswerte
 unsigned long E; // ermittele Energie
 unsigned long pulseconst; // aufgelaufene Energie für einen Puls
 
@@ -68,11 +69,14 @@ void setup() {
     Serial.println("20mA Konverter R.Becker");
     Serial.println("Debug Modus");
   }
+  lcd.setCursor(0,0);
   lcd.print("20mA Konverter");
-  delay(3000); // 3 Sekunden Pause...
+  lcd.setCursor(0,1);
+  lcd.print("Version 12/2013");
+  delay(2000); // 2 Sekunden Pause...
   lcd.clear();
   // Pulskonstante setzen
-  pulseconst = (unsigned long) WMS / IMP;
+  pulseconst = (unsigned long) KWMS / IMP;
 }
 
 void loop() {
@@ -81,7 +85,7 @@ void loop() {
   Uin = (float) (value / 1023.0) * UREF; // gemessene Spannung propotional zur Leistung
   // gemessene aktuelle Leistung in kW
   // P = (int) (PPEAK / UREF) * Uin;
-  P = (int) ((PPEAK / UREF) * Uin - 100); // Offset -100kW@0mA
+  P = (long) ((PPEAK / UREF) * Uin + OFFSET); // Verschiebung um Offset
   // falls die 20mA gerade nicht der Leistung, sondern der Stromstärke entsprechen
   // P = (unsigned int) (AMAX * UNENN / UREF / 1000.0) * Uin;
   // Momentanleistung und Energie auf LCD ausgeben
@@ -101,15 +105,16 @@ void loop() {
     Serial.println(Uin);
   }
   // jetzt Integration durchführen: erzeugte Energie ermitteln
-  if ((T > lastT) && (P > 0))
+  if ((T > lastT) && (P >= 0))
   {
-    // Trapezregel: I(f)a|b ~ (b-a)/2 * (f(a) + f (b))
-    // Ermittelte Energie im letzten MIllisekundenintervall -> W ms
+    // Numerische Integration Trapezregel
+    // I(f)a|b ~ (b-a)/2 * (f(a) + f (b))
+    // Ermittelte Energie im letzten MIllisekundenintervall -> kW ms
     // (P [kW] + lastP [kW)) * (T [ms] - lastT [ms]) / 2
     E = E + (unsigned long) (( P + lastP ) * (T - lastT) / 2);
     if (debug)
     {
-      Serial.print("Gemessene Energie= ");
+      Serial.print("Erzeugte Energie= ");
       Serial.println(E);
     }
     if (E >= pulseconst)
@@ -120,10 +125,19 @@ void loop() {
       delay(30); // 30ms Impulsdauer gemäß DIN EN43864 für S0
       digitalWrite(Pin_S0,LOW);
       digitalWrite(Pin_LED,LOW);
+      // und gerade erzeugtes Pulsäquivalent von der summierten
+      // Energie abziehen
       E = E - pulseconst;
+      if (debug)
+      {
+        Serial.print("Impuls erzeugt; Energie= ");
+        Serial.println(pulseconst);
+      }
     }
   }  
   lastT = T; // letzte Zeit sichern für Integration
+  // letzte Leistung sichern für Integration
   if (P>=0) lastP = P;
-  else lastP = 0; // letzte Leistung sichern für Integration
+  else lastP = 0; // aber nicht bei "negativer Leistung"
 }
+

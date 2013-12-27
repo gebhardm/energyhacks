@@ -32,6 +32,9 @@ int Pin_Debug =2;  // Debugschalter an D2
 // LCD-Anschluss (rs, (rw), enab, D4, D5, D6, D7)
 LiquidCrystal lcd(8,9,4,5,6,7);
 
+// define um Energieerzeugung anzuzeigen
+//#define SHOWENERGY
+
 // Konstantendefinitionen (damit der Optimierer was zu tun hat)
 #define UREF 5.0  // Referenzspannung des AD-Wandlers
 #define IMP 20  // Pulse pro kWh => muss auch im Solarlog eingestellt werden
@@ -49,7 +52,10 @@ unsigned long T, lastT; // gemessene Zeit in Millisekunden; Achtung: Overflow na
 unsigned int  value; // gemessener Analogwert
 float Uin; // korrespondierende Eingangsspannung
 long P, lastP; // ermittelte Leistungswerte
-unsigned long E; // ermittele Energie
+unsigned long Eakt, Esum; // ermittele Energie
+#ifdef SHOWENERGY
+unsigned long Eges; // aufgelaufene Energie ohne Impulsabzug
+#endif
 unsigned long pulseconst; // aufgelaufene Energie für einen Puls
 
 void setup() {
@@ -93,10 +99,12 @@ void loop() {
   lcd.print("Power: ");
   lcd.print(P);
   lcd.print("kW ");
-  //lcd.setCursor(0,1);
-  //lcd.print("Energy:");
-  //lcd.print(E);
-  //lcd.print("kWh ");
+#ifdef SHOWENERGY  
+  lcd.setCursor(0,1);
+  lcd.print("Energy:");
+  lcd.print((double)Eges / KWMS / 1000);
+  lcd.print("MWh ");
+#endif  
   if (debug)
   {
     Serial.print("AD-Wert= ");
@@ -111,13 +119,19 @@ void loop() {
     // I(f)a|b ~ (b-a)/2 * (f(a) + f (b))
     // Ermittelte Energie im letzten MIllisekundenintervall -> kW ms
     // (P [kW] + lastP [kW)) * (T [ms] - lastT [ms]) / 2
-    E = E + (unsigned long) (( P + lastP ) * (T - lastT) / 2);
+    Eakt = (unsigned long) ((P + lastP) * (T - lastT) / 2);
+    Esum += Eakt;
+#ifdef SHOWENERGY    
+    Eges += Eakt; // Energie ohne Reduktion bei Impuls
+#endif    
     if (debug)
     {
-      Serial.print("Erzeugte Energie= ");
-      Serial.println(E);
+      Serial.print("Aktuelle Energieerzeugung= ");
+      Serial.println(Eakt);
+      Serial.print("Aufgelaufene Energie= ");
+      Serial.println(Esum);
     }
-    if (E >= pulseconst)
+    if (Esum >= pulseconst)
     {
       // Puls ausgeben
       digitalWrite(Pin_S0,HIGH);
@@ -127,7 +141,7 @@ void loop() {
       digitalWrite(Pin_LED,LOW);
       // und gerade erzeugtes Pulsäquivalent von der summierten
       // Energie abziehen
-      E = E - pulseconst;
+      Esum -= pulseconst;
       if (debug)
       {
         Serial.print("Impuls erzeugt; Energie= ");
@@ -140,4 +154,3 @@ void loop() {
   if (P>=0) lastP = P;
   else lastP = 0; // aber nicht bei "negativer Leistung"
 }
-

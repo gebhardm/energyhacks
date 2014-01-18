@@ -1,6 +1,13 @@
 This file briefly explains installing mySQL with python access and mosquitto
 to run the flm_*_to_db.py scripts.
 
+This refers to a Raspbian Wheezy installation to be downloaded from
+http://www.raspberrypi.org/downloads - I went through the steps on a fresh
+installation.
+Clone my Github repository into your /home/pi folder using
+git clone https://github.com/gebhardm/energyhacks
+Then the energyhacks/RaspberryPi folder contains all you actually need.
+
 1) sudo apt-get install mysql-server mysql-client
 
 This installs the database and all dependent packages not already installed.
@@ -33,12 +40,14 @@ be sure to have the same database applied also in the scripts. Log out of the
 database with quit; (don't forget the semicolon)
 
 Now you are able to run the scripts and store sensor data in the flm database.
-Be sure to have changed the sensor IDs to your own ones.
+Be sure to have changed the sensor IDs to your own ones as well as the LAN 
+address of your fluksometer.
 
---> nohup python <script>.py &
+nohup python flm_mqtt_to_db.py &
 
 Use the nohup to keep the script running also when logged out of the RasPi
-(I access the RasPi remotely via SSH)
+(I access the RasPi remotely via SSH); note that for flm_query_to_db.py
+no mosquitto installation is required as this script accesses the REST interface.
 
 5) mysql -u root -p flm
    show tables;
@@ -52,3 +61,7 @@ to a .csv file using following SQL query
    fields terminated by ','
    lines terminated by '\n'
    from flmdata;
+   
+This query stores the flmdata.csv file in the MySQL default folder /var/lib/mysql/flm
+that needs to be made readable using sudo chmod 755 /var/lib/mysql/flm; use another
+folder with proper access rights to your convenience.

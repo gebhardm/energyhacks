@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FLM web interface via node.js and MQTT">
+
+    <title>Fluksometer Realtime</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+    <!-- Sparkline -->
+    <script type="text/javascript" src="js/jquery.sparkline.min.js"></script>
+    <!-- jgPlot -->
+    <link class="include" rel="stylesheet" type="text/css" href="dist/jquery.jqplot.min.css" />
+    <script type="text/javascript" src="js/jquery.jqplot.min.js"></script>
+    <script type="text/javascript" src="js/jqplot.canvasTextRenderer.min.js"></script>
+    <script type="text/javascript" src="js/jqplot.canvasAxisLabelRenderer.min.js"></script>
+    <script type="text/javascript" src="js/jqplot.dateAxisRenderer.min.js"></script>
+
+    <!-- socket.io for communication -->
+    <script type="text/javascript" src="js/socket.io.min.js"></script>
+    <script type="text/javascript">
+        var rasPiIP = '192.168.0.70';
+        var socket = io.connect(rasPiIP+':3000');
+            socket.on('connect', function () {
+                socket.on('mqtt', function (msg) {
+                    var message = msg.topic.split('/');
+                    var area = message[1];
+                    var state = message[2];
+                    $('#topic').html(msg.topic);
+                    $('#message').html(msg.topic + ', ' + msg.payload);
+                    switch (area) {
+                        case 'sensor':
+                            $('#gauge').html('(Sensor value: ' + msg.payload + ')');                    
+                            break;
+                        default:
+                        //console.log('Error: Data do not match the MQTT topic.');
+                        break;
+                    }
+         });
+         socket.emit('subscribe', {topic : '/sensor/#'});
+        });
+    </script>
+
+  </head>
+
+  <body>
+    <div id="wrap">
+      <div class="container">
+        <div class="page-header"><h1><b>Fluksometer Readings</b></h1></div>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <table class="table table-striped">
+                    <tr>
+                        <td width="40%" style="vertical-align:middle;"><h3>Gauge</h3><small id="gauge">(no value recieved)</small></td>
+                        <td style="vertical-align:middle;"></td>
+                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="label1" class="label">Unknown</span></h4></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <b>Latest MQTT message:  </b> <small id="message">no message recieved</small>
+            </div>
+        </div>
+
+        <div class="footer">
+        <small><p class="text-center">Based on <a href="http://github.com/fabaff/mqtt-panel">mqtt-panel</a> &copy; <a href="http://affolter-engineering.ch">Affolter Engineering</a> 2013</p></small>
+    </div>
+  </body>
+</html>

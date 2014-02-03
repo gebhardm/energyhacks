@@ -2,7 +2,9 @@
 /**
  * Copyright (c) 2013, Fabian Affolter <fabian@affolter-engineering.ch>
  * Released under the MIT license. See LICENSE file for details.
- * adapted to FLM by Markus Gebhard, Karlsruhe, 02/2014
+ * Adapted to FLM by Markus Gebhard, Karlsruhe, 02/2014
+ * Static http server part taken from Ryan Florence (rpflorence on github)
+ * https://gist.github.com/rpflorence/701407
  */
 
 // define the used modules: mqtt for client, socket.io for push,

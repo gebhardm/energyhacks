@@ -11,40 +11,38 @@
     <link href="css/bootstrap.css" rel="stylesheet">
     <!-- jQuery -->
     <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
-    <!-- Sparkline -->
-    <script type="text/javascript" src="js/jquery.sparkline.min.js"></script>
-    <!-- jgPlot -->
-    <link class="include" rel="stylesheet" type="text/css" href="dist/jquery.jqplot.min.css" />
-    <script type="text/javascript" src="js/jquery.jqplot.min.js"></script>
-    <script type="text/javascript" src="js/jqplot.canvasTextRenderer.min.js"></script>
-    <script type="text/javascript" src="js/jqplot.canvasAxisLabelRenderer.min.js"></script>
-    <script type="text/javascript" src="js/jqplot.dateAxisRenderer.min.js"></script>
 
     <!-- socket.io for communication -->
     <script type="text/javascript" src="js/socket.io.min.js"></script>
     <script type="text/javascript">
+        var sensors = {};
         var rasPiIP = '192.168.0.70';
         var socket = io.connect(rasPiIP+':3000');
             socket.on('connect', function () {
                 socket.on('mqtt', function (msg) {
                     var message = msg.topic.split('/');
-                    var area = message[1];
-                    var state = message[2];
+                    var area = message[3];
                     $('#topic').html(msg.topic);
                     $('#message').html(msg.topic + ', ' + msg.payload);
                     switch (area) {
-                        case 'sensor':
-                            $('#gauge').html('(Sensor value: ' + msg.payload + ')');                    
+                        case 'gauge':
+                            // Sensor handling
+                            var sensor = message[2];
+                            var value = JSON.parse(msg.payload);
+                            sensors[sensor] = value[1] + ' ' + value[2];
+                            var i = 0;
+                            for (prop in sensors) {
+                              i++;  
+                              $('#sensor'+i).html('(Sensor ' + prop + ')');
+                              $('#value'+i).html(sensors[prop]);
+                            }
                             break;
-                        default:
-                        //console.log('Error: Data do not match the MQTT topic.');
-                        break;
+                        default: break;
                     }
          });
          socket.emit('subscribe', {topic : '/sensor/#'});
         });
     </script>
-
   </head>
 
   <body>
@@ -55,9 +53,29 @@
             <div class="panel-body">
                 <table class="table table-striped">
                     <tr>
-                        <td width="40%" style="vertical-align:middle;"><h3>Gauge</h3><small id="gauge">(no value recieved)</small></td>
+                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 1</h3><small id="sensor1">(no value received)</small></td>
                         <td style="vertical-align:middle;"></td>
-                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="label1" class="label">Unknown</span></h4></td>
+                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value1">Unknown</span></h4></td>
+                    </tr>
+                    <tr>
+                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 2</h3><small id="sensor2">(no value received)</small></td>
+                        <td style="vertical-align:middle;"></td>
+                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value2">Unknown</span></h4></td>
+                    </tr>
+                    <tr>
+                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 3</h3><small id="sensor3">(no value received)</small></td>
+                        <td style="vertical-align:middle;"></td>
+                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value3">Unknown</span></h4></td>
+                    </tr>
+                    <tr>
+                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 4</h3><small id="sensor4">(no value received)</small></td>
+                        <td style="vertical-align:middle;"></td>
+                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value4">Unknown</span></h4></td>
+                    </tr>
+                    <tr>
+                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 5</h3><small id="sensor5">(no value received)</small></td>
+                        <td style="vertical-align:middle;"></td>
+                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value5">Unknown</span></h4></td>
                     </tr>
                 </table>
             </div>
@@ -69,7 +87,7 @@
         </div>
 
         <div class="footer">
-        <small><p class="text-center">Based on <a href="http://github.com/fabaff/mqtt-panel">mqtt-panel</a> &copy; <a href="http://affolter-engineering.ch">Affolter Engineering</a> 2013</p></small>
+        <small><p class="text-center">FLM MQTT Panel, based on <a href="http://github.com/fabaff/mqtt-panel">mqtt-panel</a> &copy; <a href="http://affolter-engineering.ch">Affolter Engineering</a> 2013</p></small>
     </div>
   </body>
 </html>

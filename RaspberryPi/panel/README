@@ -4,8 +4,9 @@ a MQTT message to socket.io pipe with an integrated simple http
 server serving a page displaying FLM sensor data, that is up to
 five gauges received via MQTT messages.
 To run the script install node.js; easiest via github.com/joyent/node.
-Checkout v0.10.25-release and make. Install the MQTT module with npm.
-On a running node.js installation just run the run.sh script to start
+Checkout v0.10.25-release and make. Install the MQTT ans socket.io modules
+with npm.
+On a running node.js installation just run the ./run.sh script to start
 the server - be aware to adapt the MQTT client in the serve_mqtt.js
 to your local FLM's address.
 Point your whereever located browser to the RasPi's IP address port 1080.

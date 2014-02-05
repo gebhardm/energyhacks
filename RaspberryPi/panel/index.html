@@ -11,31 +11,51 @@
     <link href="css/bootstrap.css" rel="stylesheet">
     <!-- jQuery -->
     <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
-
+    <!-- Sparkline - for inline graphics -->
+    <script type="text/javascript" src="js/jquery.sparkline.min.js"></script>
     <!-- socket.io for communication -->
     <script type="text/javascript" src="js/socket.io.min.js"></script>
     <script type="text/javascript">
-        var sensors = {};
+        // objects containing the actual sensor data
+        var sensors = {}, readings = {};
+        // create an array of sensor values to pass on to a graph
+        var sensorvalues = new Array(5);
+        for(var i=0; i<sensorvalues.length; i++) sensorvalues[i] = new Array(25);
+        // define your Raspberry Pi's IP address here to link to the socket
         var rasPiIP = '192.168.0.70';
         var socket = io.connect(rasPiIP+':3000');
             socket.on('connect', function () {
                 socket.on('mqtt', function (msg) {
+                    // split the received message at the slashes
                     var message = msg.topic.split('/');
+                    // the sensor message type is the third value
                     var area = message[3];
+                    // pass the message topic and content to the html part
                     $('#topic').html(msg.topic);
                     $('#message').html(msg.topic + ', ' + msg.payload);
+                    // now compute the readings
                     switch (area) {
                         case 'gauge':
                             // Sensor handling
-                            var sensor = message[2];
+                            var sensor = message[2]; // the sensor ID
                             var value = JSON.parse(msg.payload);
-                            var date = new Date(value[0]*1000);
+                            var date = new Date(value[0]*1000); // the timestamp
                             sensors[sensor] = value[1] + ' ' + value[2] + ' (' + date.toLocaleTimeString("de-DE") + ')';                            
+                            readings[sensor] = value[1]; // store the actual value of the sensor to push
                             var i = 0;
                             for (prop in sensors) {
-                              i++;  
+                              i++;
+                              // fill the array of last n readings
+                              sensorvalues[i].push(readings[prop]);
+                              if (sensorvalues[i].length > 24)
+                                  sensorvalues[i].shift();
+                              // now pass the data to the html part
                               $('#sensor'+i).html('(Sensor ' + prop + ')');
                               $('#value'+i).html(sensors[prop]);
+                              $('.valueSparkline'+i).sparkline(sensorvalues[i], {
+                                type: 'line',
+                                width: '200',
+                                height: '50'});
                             }
                             break;
                         default: break;
@@ -55,27 +75,27 @@
                 <table class="table table-striped">
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 1</h3><small id="sensor1">(no value received)</small></td>
-                        <td style="vertical-align:middle;"></td>
+                        <td style="vertical-align:middle;"><span class="valueSparkline1"></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value1">Unknown</span></h4></td>
                     </tr>
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 2</h3><small id="sensor2">(no value received)</small></td>
-                        <td style="vertical-align:middle;"></td>
+                        <td style="vertical-align:middle;"><span class="valueSparkline2"></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value2">Unknown</span></h4></td>
                     </tr>
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 3</h3><small id="sensor3">(no value received)</small></td>
-                        <td style="vertical-align:middle;"></td>
+                        <td style="vertical-align:middle;"><span class="valueSparkline3"></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value3">Unknown</span></h4></td>
                     </tr>
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 4</h3><small id="sensor4">(no value received)</small></td>
-                        <td style="vertical-align:middle;"></td>
+                        <td style="vertical-align:middle;"><span class="valueSparkline4"></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value4">Unknown</span></h4></td>
                     </tr>
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 5</h3><small id="sensor5">(no value received)</small></td>
-                        <td style="vertical-align:middle;"></td>
+                        <td style="vertical-align:middle;"><span class="valueSparkline5"></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value5">Unknown</span></h4></td>
                     </tr>
                 </table>
@@ -83,7 +103,7 @@
         </div>
         <div class="panel panel-default">
             <div class="panel-body">
-                <b>Latest MQTT message:  </b> <small id="message">no message recieved</small>
+                <b>Latest MQTT message:  </b> <small id="message">no message received</small>
             </div>
         </div>
 

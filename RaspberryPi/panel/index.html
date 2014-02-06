@@ -22,8 +22,8 @@
         var sensorvalues = new Array(5);
         for(var i=0; i<sensorvalues.length; i++) sensorvalues[i] = [];
         // define your Raspberry Pi's IP address here to link to the socket
-        var rasPiIP = '192.168.0.70';
-        var socket = io.connect(rasPiIP+':3000');
+        var serverIP = '192.168.0.70';
+        var socket = io.connect(serverIP+':3000');
             socket.on('connect', function () {
                 socket.on('mqtt', function (msg) {
                     // split the received message at the slashes

@@ -20,7 +20,7 @@
         var sensors = {}, readings = {};
         // create an array of sensor values to pass on to a graph
         var sensorvalues = new Array(5);
-        for(var i=0; i<sensorvalues.length; i++) sensorvalues[i] = new Array(25);
+        for(var i=0; i<sensorvalues.length; i++) sensorvalues[i] = [];
         // define your Raspberry Pi's IP address here to link to the socket
         var rasPiIP = '192.168.0.70';
         var socket = io.connect(rasPiIP+':3000');
@@ -46,16 +46,14 @@
                             for (prop in sensors) {
                               i++;
                               // fill the array of last n readings
-                              sensorvalues[i].push(readings[prop]);
-                              if (sensorvalues[i].length > 24)
+                              if (sensorvalues[i].length = 59)
                                   sensorvalues[i].shift();
+                              sensorvalues[i].push(readings[prop]);
                               // now pass the data to the html part
                               $('#sensor'+i).html('(Sensor ' + prop + ')');
                               $('#value'+i).html(sensors[prop]);
-                              $('.valueSparkline'+i).sparkline(sensorvalues[i], {
-                                type: 'line',
-                                width: '200',
-                                height: '50'});
+                              $('#valueSparkline'+i).sparkline(sensorvalues[i], {
+                                type: 'line', width: '200', height: '50'});
                             }
                             break;
                         default: break;
@@ -75,27 +73,27 @@
                 <table class="table table-striped">
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 1</h3><small id="sensor1">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span class="valueSparkline1"></td>
+                        <td style="vertical-align:middle;"><span id="valueSparkline1">No values</span></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value1">Unknown</span></h4></td>
                     </tr>
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 2</h3><small id="sensor2">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span class="valueSparkline2"></td>
+                        <td style="vertical-align:middle;"><span id="valueSparkline2">No values</span></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value2">Unknown</span></h4></td>
                     </tr>
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 3</h3><small id="sensor3">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span class="valueSparkline3"></td>
+                        <td style="vertical-align:middle;"><span id="valueSparkline3">No values</span></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value3">Unknown</span></h4></td>
                     </tr>
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 4</h3><small id="sensor4">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span class="valueSparkline4"></td>
+                        <td style="vertical-align:middle;"><span id="valueSparkline4">No values</span></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value4">Unknown</span></h4></td>
                     </tr>
                     <tr>
                         <td width="40%" style="vertical-align:middle;"><h3>Sensor 5</h3><small id="sensor5">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span class="valueSparkline5"></td>
+                        <td style="vertical-align:middle;"><span id="valueSparkline5">No values</span></td>
                         <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value5">Unknown</span></h4></td>
                     </tr>
                 </table>

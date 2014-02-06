@@ -1,6 +1,8 @@
-This folder contains some programs and scripts to be used on a Raspberry Pi.
-First hack is a Python script to read local Fluksometer [www.flukso.net] data
-and store this in a MySQL database for later assessment.
+This folder contains some programs and scripts (in own folders) to be used
+on a Raspberry Pi.
+First hack in "FLMtoDB" is a Python script to read local Fluksometer
+[www.flukso.net] data and store this in a MySQL database for later assessment.
+Second hack in "panel" is an adaptation of the mqtt-panel by FabAff to the FLM.
 
 *.psp are python server page files to be deployed into the web server
 directory of the Raspberry Pi. That is /var/www for Apache; look for
@@ -12,3 +14,5 @@ graphically.
 
 *.py is the python file to read FLM measurement from the local API; to be
 deployed wherever convenient on the RaspPi, for example /home/pi/Python
+
+*.js are JavaScript files respectively.

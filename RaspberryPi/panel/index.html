@@ -21,8 +21,8 @@
         // create an array of sensor values to pass on to a graph
         var sensorvalues = new Array(5);
         for(var i=0; i<sensorvalues.length; i++) sensorvalues[i] = [];
-        // define your Raspberry Pi's IP address here to link to the socket
-        var serverIP = '192.168.0.70';
+        // get the web server's IP address to link to the socket
+        var serverIP = location.hostname;
         var socket = io.connect(serverIP+':3000');
             socket.on('connect', function () {
                 socket.on('mqtt', function (msg) {

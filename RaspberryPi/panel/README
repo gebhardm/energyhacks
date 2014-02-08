@@ -11,9 +11,8 @@ Checkout v0.10.25-release, make and (sudo) make install.
 Install the MQTT and socket.io modules with "npm install mqtt socket.io".
 On a running node.js installation just run the ./run.sh script to start
 the server - be aware to adapt the MQTT client address in the serve_mqtt.js
-to your local FLM's address as well as the socket.io's address in the
-index.html.
-Point your whereever located browser to the RasPi's IP address port 1080.
+to your local FLM's address.
+Point your wherever located browser to the web server's IP address port 1080.
 Have fun.
 
 Markus Gebhard, Karlsruhe, February 6, 2014
@@ -22,5 +21,5 @@ With the greatest acknowledgements to Fabian Affolter and Ryan Florence...
 
 All code, corresponding to the sources, under MIT-license.
 
-Note: The script and html works also in other environment where node is
+Note: The script and html works also in other environment with node.js is
 installed; the screenshot FLM_mqtt_panel.png is actually made on my iMac...

@@ -11,7 +11,7 @@
 // http for page serving, fs for getting the index.html
 var mqtt = require('mqtt');
 var socket = require('socket.io');
-var http = require('http');
+var http = require('http').createServer(handler);
 var fs = require('fs');
 var url = require('url');
 var path = require('path');
@@ -23,7 +23,8 @@ var mqttport = 1883;
 var mqttclient = mqtt.createClient(mqttport, mqttbroker);
 
 // define the socket.io to pipe mqtt messages to
-var io = socket.listen(3000);
+//var io = socket.listen(3000);
+var io = socket.listen(http);
 
 /* socket.io log levels
  * 0 - error
@@ -53,7 +54,7 @@ mqttclient.on('message', function(topic, payload) {
 });
 
 // Serve the index.html page
-http.createServer(function (req, res) {
+function handler (req, res) {
 //  easiest case: serve a static html page
 //  res.writeHead(200, { 'Content-Type':'text/html'});
 //  fs.createReadStream('./index.html').pipe(res);
@@ -93,5 +94,6 @@ http.createServer(function (req, res) {
       res.end();
     });
   });
+};
 
-}).listen(1080);
+http.listen(1080);

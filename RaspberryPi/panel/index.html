@@ -21,9 +21,8 @@
         // create an array of sensor values to pass on to a graph
         var sensorvalues = new Array(5);
         for(var i=0; i<sensorvalues.length; i++) sensorvalues[i] = [];
-        // get the web server's IP address to link to the socket
-        var serverIP = location.hostname;
-        var socket = io.connect(serverIP+':1080');
+        // link to the web server's IP address for socket connection
+        var socket = io.connect(location.host);
             socket.on('connect', function () {
                 socket.on('mqtt', function (msg) {
                     // split the received message at the slashes

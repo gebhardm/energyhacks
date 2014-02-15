@@ -19,8 +19,7 @@
         // objects containing the actual sensor data
         var sensors = {}, readings = {};
         // create an array of sensor values to pass on to a graph
-        var sensorvalues = new Array(5);
-        for(var i=0; i<sensorvalues.length; i++) sensorvalues[i] = [];
+        var sensorvalues = new Array();
         // link to the web server's IP address for socket connection
         var socket = io.connect(location.host);
             socket.on('connect', function () {
@@ -30,7 +29,6 @@
                     // the sensor message type is the third value
                     var area = message[3];
                     // pass the message topic and content to the html part
-                    $('#topic').html(msg.topic);
                     $('#message').html(msg.topic + ', ' + msg.payload);
                     // now compute the readings
                     switch (area) {
@@ -44,8 +42,18 @@
                             var i = 0;
                             for (prop in sensors) {
                               i++;
-                              // fill the array of last n readings
-                              if (sensorvalues[i].length = 59)
+                              // create and fill an array of last n readings
+                              // also create the corresponding table row to show
+                              if (sensorvalues[i] == null) {
+                                  sensorvalues[i] = new Array();
+                                  var tablerow = '<tr>\
+                                                  <td width=\"40%\" style=\"vertical-align:middle;\"><h3>Sensor '+i+'</h3><small id=\"sensor'+i+'\">(no value received)</small></td>\
+                                                  <td style=\"vertical-align:middle;\"><span id=\"valueSparkline'+i+'\">No values</span></td>\
+                                                  <td width=\"30%\" style=\"vertical-align:middle;\"><h4>&nbsp;<span id=\"value'+i+'\">Unknown</span></h4></td>\
+                                                  </tr>';
+                                  $('table').append(tablerow);
+                              };
+                              if (sensorvalues[i].length == 59)
                                   sensorvalues[i].shift();
                               sensorvalues[i].push(readings[prop]);
                               // now pass the data to the html part
@@ -70,31 +78,6 @@
         <div class="panel panel-default">
             <div class="panel-body">
                 <table class="table table-striped">
-                    <tr>
-                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 1</h3><small id="sensor1">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span id="valueSparkline1">No values</span></td>
-                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value1">Unknown</span></h4></td>
-                    </tr>
-                    <tr>
-                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 2</h3><small id="sensor2">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span id="valueSparkline2">No values</span></td>
-                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value2">Unknown</span></h4></td>
-                    </tr>
-                    <tr>
-                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 3</h3><small id="sensor3">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span id="valueSparkline3">No values</span></td>
-                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value3">Unknown</span></h4></td>
-                    </tr>
-                    <tr>
-                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 4</h3><small id="sensor4">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span id="valueSparkline4">No values</span></td>
-                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value4">Unknown</span></h4></td>
-                    </tr>
-                    <tr>
-                        <td width="40%" style="vertical-align:middle;"><h3>Sensor 5</h3><small id="sensor5">(no value received)</small></td>
-                        <td style="vertical-align:middle;"><span id="valueSparkline5">No values</span></td>
-                        <td width="30%" style="vertical-align:middle;"><h4>&nbsp;<span id="value5">Unknown</span></h4></td>
-                    </tr>
                 </table>
             </div>
         </div>

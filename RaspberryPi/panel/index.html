@@ -19,7 +19,7 @@
         // objects containing the actual sensor data
         var sensors = {}, readings = {};
         // create an array of sensor values to pass on to a graph
-        var sensorvalues = new Array();
+        var sensorvalues = {};
         // link to the web server's IP address for socket connection
         var socket = io.connect(location.host);
             socket.on('connect', function () {
@@ -51,36 +51,33 @@
                                         break;
                                     case 3:
                                         var date = new Date(value[0]*1000); // the timestamp
-                                        sensors[sensor] = value[1] + ' ' + value[2] + ' (' + date.toLocaleTimeString("de-DE") + ')';                            
+                                        sensors[sensor] = value[1] + ' ' + value[2] + ' (' + date.toLocaleTimeString("en-EN") + ')';
                                         readings[sensor] = value[1]; // store the actual value of the sensor to push
                                         break;
                                     default: break;
                                 }
                             }
-                            var i = 0;
-                            for (prop in sensors) {
-                              i++;
-                              // create and fill an array of last n readings
-                              // also create the corresponding table row to show
-                              if (sensorvalues[i] == null) {
-                                  sensorvalues[i] = new Array();
-                                  var tablerow = '<tr>\
-                                                  <td width=\"40%\" style=\"vertical-align:middle;\"><h3>Sensor '+i+'</h3><small id=\"sensor'+i+'\">(no value received)</small></td>\
-                                                  <td style=\"vertical-align:middle;\"><span id=\"valueSparkline'+i+'\">No values</span></td>\
-                                                  <td width=\"30%\" style=\"vertical-align:middle;\"><h4>&nbsp;<span id=\"value'+i+'\">Unknown</span></h4></td>\
-                                                  </tr>';
-                                  $('table').append(tablerow);
-                              };
-                              if (sensorvalues[i].length == 59)
-                                  sensorvalues[i].shift();
-                              sensorvalues[i].push(readings[prop]);
-                              // now pass the data to the html part
-                              $('#sensor'+i).html('(Sensor ' + prop + ')');
-                              $('#value'+i).html(sensors[prop]);
-                              $('#valueSparkline'+i).sparkline(sensorvalues[i], {
+                            // create and fill an array of last n readings
+                            // also create the corresponding table row to show - only if it not yet exists
+                            if (sensorvalues[sensor] == null) {
+                                sensorvalues[sensor] = new Array();
+                                var tablerow = '<tr>\
+                                                <td width=\"40%\" style=\"vertical-align:middle;\"><h3>'+area+'</h3><small id=\"sensor'+sensor+'\">(no value received)</small></td>\
+                                                <td style=\"vertical-align:middle;\"><span id=\"valueSparkline'+sensor+'\">No values</span></td>\
+                                                <td width=\"30%\" style=\"vertical-align:middle;\"><h4>&nbsp;<span id=\"value'+sensor+'\">Unknown</span></h4></td>\
+                                                </tr>';
+                                $('table').append(tablerow);
+                            };
+                            if (sensorvalues[sensor].length == 50)
+                                sensorvalues[sensor].shift();
+                            sensorvalues[sensor].push(readings[sensor]);
+                            // now pass the data to the html part
+                            $('#sensor'+sensor).html('(Sensor ' + sensor + ')');
+                            $('#value'+sensor).html(sensors[sensor]);
+                            $('#valueSparkline'+sensor).sparkline(sensorvalues[sensor], {
                                 type: 'line', width: '200', height: '50'});
-                              }
                             break;
+                        case 'counter': break;
                         default: break;
                     }
          });

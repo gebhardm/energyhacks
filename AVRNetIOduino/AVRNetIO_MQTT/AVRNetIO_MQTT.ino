@@ -42,19 +42,28 @@ void setup()
   };
 }
 
+char* createPayload(int value, char* unit)
+{
+  char val[10], payload[60];
+  // build payload [<value>,"<unit>"]
+  itoa(value, val, 10);
+  strcpy(payload,"");
+  strcat(payload,"[");
+  strcat(payload,val);
+  strcat(payload,",\"");
+  strcat(payload,unit);
+  strcat(payload,"\"]");
+  return payload;
+}
+
 void loop()
 {
-  char val[11];
   client.loop();
   if (client.connected()) {
-    itoa(analogRead(A1),val,10);
-    client.publish("/sensor/ADC1/gauge", val);
-    itoa(analogRead(A2),val,10);
-    client.publish("/sensor/ADC2/gauge",val);
-    itoa(analogRead(A3),val,10);
-    client.publish("/sensor/ADC3/gauge",val);
-    itoa(analogRead(A4),val,10);
-    client.publish("/sensor/ADC4/gauge",val);
+    client.publish("/sensor/ADC1/gauge",createPayload(analogRead(A1),"DEC"));
+    client.publish("/sensor/ADC2/gauge",createPayload(analogRead(A2),"DEC"));
+    client.publish("/sensor/ADC3/gauge",createPayload(analogRead(A3),"DEC"));
+    client.publish("/sensor/ADC4/gauge",createPayload(analogRead(A4),"DEC"));
   }
   else {
     client.connect("arduino");

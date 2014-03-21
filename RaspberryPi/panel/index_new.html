@@ -17,7 +17,7 @@
         // objects containing the actual sensor data as string and value
         var sensors = {}, gauge = {}, counters = {};
         // create an array of sensor values to pass on to a graph
-        var gaugeseries = {};
+        var gaugeseries = {}, numgauge = 0, numcounter = 0;
         // link to the web server's IP address for socket connection
         var socket = io.connect(location.host);
             socket.on('connect', function () {
@@ -59,8 +59,9 @@
                             // also create the corresponding table row to show - only if it not yet exists
                             if (gaugeseries[sensor] == null) {
                                 gaugeseries[sensor] = new Array();
+                                numgauge++;
                                 var tablerow = '<tr>\
-                                                <td width=\"40%\" style=\"vertical-align:middle;\"><h3>Gauge</h3><small id=\"sensor'+sensor+'\">(no value received)</small></td>\
+                                                <td width=\"40%\" style=\"vertical-align:middle;\"><h3>Gauge '+numgauge+'</h3><small id=\"sensor'+sensor+'\">(no value received)</small></td>\
                                                 <td style=\"vertical-align:middle;\"><span id=\"valueSparkline'+sensor+'\">No values</span></td>\
                                                 <td width=\"30%\" style=\"vertical-align:middle;\"><h4>&nbsp;<span id=\"value'+sensor+'\">Unknown</span></h4></td>\
                                                 </tr>';
@@ -78,14 +79,19 @@
                         case 'counter':
                             var date = new Date(value[0]*1000); // the timestamp
 							if (counters[sensor] == null) {
+                                numcounter++;
                                 var tablerow = '<tr>\
-                                                <td width=\"40%\" style=\"vertical-align:middle;\"><h3>Counter</h3><small id=\"counter'+sensor+'\">(no value received)</small></td>\
+                                                <td width=\"40%\" style=\"vertical-align:middle;\"><h3>Counter '+numcounter+'</h3><small id=\"counter'+sensor+'\">(no value received)</small></td>\
                                                 <td style=\"vertical-align:middle;\"></td>\
                                                 <td width=\"30%\" style=\"vertical-align:middle;\"><h4>&nbsp;<span id=\"count'+sensor+'\">Unknown</span></h4></td>\
                                                 </tr>';
                                 $('table').append(tablerow);
 							}
-                            counters[sensor] = value[1] + ' ' + value[2] + ' (' + date.toLocaleTimeString("en-EN") + ')';
+                            if (value[2] == 'Wh')
+                                counters[sensor] = value[1] / 1000.0 + ' kWh';
+                            else
+                                counters[sensor] = value[1] + ' ' + value[2];
+                            //+ ' (' + date.toLocaleTimeString("en-EN") + ')';
 							$('#counter'+sensor).html('(Sensor ' + sensor + ')');
                             $('#count'+sensor).html(counters[sensor]);
 							break;

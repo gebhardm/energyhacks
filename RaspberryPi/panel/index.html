@@ -19,7 +19,7 @@
         // objects containing the actual sensor data
         var sensors = {}, readings = {};
         // create an array of sensor values to pass on to a graph
-        var sensorvalues = {};
+        var sensorvalues = {}, numgauge = 0;
         // link to the web server's IP address for socket connection
         var socket = io.connect(location.host);
             socket.on('connect', function () {
@@ -61,8 +61,9 @@
                             // also create the corresponding table row to show - only if it not yet exists
                             if (sensorvalues[sensor] == null) {
                                 sensorvalues[sensor] = new Array();
+                                numgauge++;
                                 var tablerow = '<tr>\
-                                                <td width=\"40%\" style=\"vertical-align:middle;\"><h3>'+area+'</h3><small id=\"sensor'+sensor+'\">(no value received)</small></td>\
+                                                <td width=\"40%\" style=\"vertical-align:middle;\"><h3>Gauge '+numgauge+'</h3><small id=\"sensor'+sensor+'\">(no value received)</small></td>\
                                                 <td style=\"vertical-align:middle;\"><span id=\"valueSparkline'+sensor+'\">No values</span></td>\
                                                 <td width=\"30%\" style=\"vertical-align:middle;\"><h4>&nbsp;<span id=\"value'+sensor+'\">Unknown</span></h4></td>\
                                                 </tr>';

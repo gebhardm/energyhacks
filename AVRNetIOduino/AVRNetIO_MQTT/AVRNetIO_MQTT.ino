@@ -10,10 +10,13 @@
 unsigned long sum = 0, nHz = 0, microseconds = 0;
 byte cnt = 0;
 
-// The AVRNetIO's MAC as provided by Pollin
+// The AVRNetIO's MAC as provided by Pollin - use your own unique address
 byte mac[]    = { 
   0x00, 0x22, 0xF9, 0x01, 0x2E, 0x49 };
-// The FLM's IP address
+// The FLM's IP address / the MQTT broker's address
+// The FLM itself publishes on topic /sensor/#, so this is used also to get
+// a generic display capability via the FLM MQTT panel
+// https://github.com/gebhardm/energyhacks/tree/master/RaspberryPi/panel
 byte flm[] = { 
   192, 168, 0, 50 };
 
@@ -33,6 +36,7 @@ void setup()
     // something went wrong
     while(true)
     { 
+	  // let LED blink to show error condition
       for (int i=0;i<3;i++){
         digitalWrite(ledPin, HIGH);
         delay(150);
@@ -49,6 +53,7 @@ void setup()
   attachInterrupt(0, interrupt, FALLING);
 }
 
+// create topic payload in compliance with FLM topic in JSON
 char* createPayload(long value, char* unit)
 {
   char val[10], payload[60];
@@ -67,6 +72,7 @@ void loop()
 {
   client.loop();
   if (client.connected()) {
+  // now publish the readings; gauge is generically used for "gauge display", so this is reused
     client.publish("/sensor/ADC1/gauge",createPayload((analogRead(A1)*(500000/1023)/100),"mV"));
     client.publish("/sensor/ADC2/gauge",createPayload((analogRead(A2)*(500000/1023)/100),"mV"));
     client.publish("/sensor/ADC3/gauge",createPayload((analogRead(A3)*(500000/1023)/100),"mV"));
@@ -74,8 +80,10 @@ void loop()
     client.publish("/sensor/Net/gauge",createPayload( (long) (1000000000L / nHz),"mHz"));
   }
   else {
+    // reconnect on lost connection
     client.connect("arduino");
   }
+  // blink for convenience
   digitalWrite(ledPin, HIGH);
   delay(250);
   digitalWrite(ledPin, LOW);
@@ -88,10 +96,10 @@ void interrupt( void )
   sum += ( micros() - microseconds );
   microseconds = micros();  
   cnt++;
+  // calculate the average net frequency detected during AVG reads
   if (cnt == AVG) {
     nHz = sum / cnt;
     cnt = 0;
     sum = 0;  
   }
 }
-

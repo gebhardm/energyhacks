@@ -189,7 +189,7 @@ int main( void )
 	send_USART(27); sendchars_USART("[2J"); // clear screen
 	sendchars_USART("Net loupe");
 #endif
-	// Net frequecy read preparation
+	// Net frequency read preparation
 	//MCUCR |= (0x02 << ISC00);  // Interrupt on falling edge of INT0
 	MCUCR |= (0x03 << ISC00);  // Interrupt on rising edge on INT0
 	GIMSK |= (1 << INT0);   	 // release INT0

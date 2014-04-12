@@ -7,7 +7,7 @@ It computes up to five gauges received via MQTT messages.
 How to use
 ==========
 To run the script install node.js; easiest from http://github.com/joyent/node.
-Checkout v0.10.25-release, make and (sudo) make install.
+Checkout v0.10.25-release, ./configure,  make and (sudo) make install.
 Install the MQTT and socket.io modules with "npm install mqtt socket.io".
 On a running node.js installation just run the ./run.sh script to start
 the server - be aware to adapt the MQTT client address in the serve_mqtt.js

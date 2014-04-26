@@ -1,0 +1,21 @@
+To use the mySQL database for storing data not only via the root user
+you have to set up a corresponding "other" user; this can be done from
+the mySQL command line by following commands:
+
+Log into the mySQL database called 'flm':
+pi@raspberrypi ~ $ mysql -u root -p flm
+
+mysql> create user 'pi'@'localhost' identified by 'raspberry';
+mysql> grant all privileges on flm.* to 'pi'@'localhost';
+mysql> flush privileges;
+mysql> set password for 'pi'@'localhost' = password('raspberry');
+mysql> quit
+
+Now you may log on to the database also as user 'pi':
+pi@raspberry ~ $ myql -u pi -p flm
+
+mysql> show databases;
+mysql> show tables;
+mysql> select count(*) from flmdata;
+
+

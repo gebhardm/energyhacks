@@ -1,5 +1,5 @@
-This file briefly explains installing mySQL with python access and mosquitto
-to run the flm_*_to_db.py scripts.
+In the following it is briefly explains installing mySQL with python access
+and mosquitto to run the flm_*_to_db.py scripts.
 
 This refers to a Raspbian Wheezy installation to be downloaded from
 http://www.raspberrypi.org/downloads - I went through the steps on a fresh
@@ -38,12 +38,23 @@ Log into the database as root; provide above given password when asked.
 Create the database used in the logging scripts; chose whatever you like, but
 be sure to have the same database applied also in the scripts. Log out of the 
 database with quit; (don't forget the semicolon)
+You may also introduce another database user and grant corresponding 
+permissions; use one of the may descriptions in the WWW to do this.
 
 Now you are able to run the scripts and store sensor data in the flm database.
-Be sure to have changed the sensor IDs to your own ones as well as the LAN 
-address of your fluksometer.
+
+When using the flm_mqtt_to_db.py script, be sure to have changed the sensor
+IDs to your own ones as well as the LAN address of your fluksometer.
 
 nohup python flm_mqtt_to_db.py &
+
+Alternatively use the generic script that filters relevant sensor data.
+
+nohup python flm_mqtt_db_gen.py &
+
+The latter subscribes to /sensor/# and filters for "gauge" subtopics;
+disadvantage here is that not a "name" but the sensor ID is written to
+the database as sensor identification key.
 
 Use the nohup to keep the script running also when logged out of the RasPi
 (I access the RasPi remotely via SSH); note that for flm_query_to_db.py
@@ -57,11 +68,12 @@ Access the database and look at the stored data; you may pass the stored data al
 to a .csv file using following SQL query
 
    select *
-   into outfile 'flmdata.csv'
+   into outfile '~/flmdata.csv'
    fields terminated by ','
    lines terminated by '\n'
    from flmdata;
    
-This query stores the flmdata.csv file in the MySQL default folder /var/lib/mysql/flm
-that needs to be made readable using sudo chmod 755 /var/lib/mysql/flm; use another
-folder with proper access rights to your convenience.
+Without the prefix "~/" this query stores the flmdata.csv file in the MySQL 
+default folder /var/lib/mysql/flm that needs to be made readable using 
+sudo chmod 755 /var/lib/mysql/flm; use another folder with proper access 
+rights to your convenience.

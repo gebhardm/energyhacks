@@ -1,3 +1,4 @@
 # ignore Mac OS files
 .DS_Store
 nohup.out
+Thumbs.db

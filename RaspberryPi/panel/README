@@ -1,23 +1,30 @@
 An MQTT-panel adaptation to the flukso.net Fluksometer.
 "serve_mqtt.js" is a JavaScript running on node.js. It serves as
 a MQTT message to socket.io pipe with an integrated simple http
-server. The provided page displays data of all connected FLM sensors.
-It computes up to five gauges received via MQTT messages.
+server. The provided page (index.html) displays data of all retrieved
+FLM sensor gauges; the index_new.html includes the counters also.
 
 How to use
 ==========
 To run the script install node.js; easiest from http://github.com/joyent/node.
-Checkout v0.10.25-release, ./configure,  make and (sudo) make install.
+Checkout v0.10.26-release, ./configure,  make and (sudo) make install.
 Install the MQTT and socket.io modules with "npm install mqtt socket.io".
 On a running node.js installation just run the ./run.sh script to start
 the server - be aware to adapt the MQTT client address in the serve_mqtt.js
 to your local FLM's address.
-Point your wherever located browser to the web server's IP address port 1080.
+Point your wherever located browser to the web server's IP address port 1080,
+in my example http://192.168.0.70:1080 - the index.html page is loaded
+automatically; for the index_new.html file use http://<address>:1080/index_new.html
 Have fun.
 
-Markus Gebhard, Karlsruhe, February 6, 2014
+The persist_mqtt.js file denotes the starting point to pipe received sensor data
+into an mysql database; for this, please also refer to the RaspberryPi/FLMtoDB folder
+
+Markus Gebhard, Karlsruhe, February 6, 2014/May 1, 2014
 
 With the greatest acknowledgements to Fabian Affolter and Ryan Florence...
+The original MQTT panel by FabAff: https://github.com/fabaff/mqtt-panel
+HTTP server part by Ryan Florence: https://gist.github.com/rpflorence/701407
 
 All code, corresponding to the sources, under MIT-license.
 

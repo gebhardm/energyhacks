@@ -5,6 +5,10 @@ and stores the received sensor gauges into a
 mysql database.
 (c) Markus Gebhard, Karlsruhe, 2014 - under MIT license
 delivered "as is", no guarantee to work ;-)
+
+uses
+  mysql module: https://github.com/felixge/node-mysql
+  mqtt module: https://github.com/adamvr/MQTT.js/
 ************************************************************/
 var mysql = require('mysql');
 var mqtt  = require('mqtt');
@@ -27,6 +31,7 @@ mqttclient.on('message', function(topic, payload) {
    switch (subtopics[3]) {
       case 'gauge':
          var gauge = JSON.parse(payload);
+// FLM gauges consist of timestamp, value, and unit
          if (gauge.length == 3) {
             var date = new Date(gauge[0]*1000).toISOString().slice(0, 19).replace('T', ' ');
             var insertStr = 'INSERT INTO flmdata'
@@ -52,7 +57,10 @@ mqttclient.on('message', function(topic, payload) {
    }
 });
 
-database.connect();
+database.connect(function(err) {
+  if (err) throw err;
+  console.log('Database flm successfully connected');
+});
 
 // create the persistence 
 var createTabStr = 'CREATE TABLE IF NOT EXISTS flmdata'

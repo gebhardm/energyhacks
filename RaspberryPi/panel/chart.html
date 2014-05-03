@@ -1,0 +1,42 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="FLM database chart">
+<title>Fluksometer Database Readings</title>
+<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery.flot.js"></script>
+<script type="text/javascript">
+	$(function() {
+		var d1 = [];
+		for (var i = 0; i < 14; i += 0.5) {
+			d1.push([i, Math.sin(i)]);
+		}
+		var d2 = [[0, 3], [4, 8], [8, 5], [9, 13]];
+		var d3 = [[0, 12], [7, 12], null, [7, 2.5], [12, 2.5]];
+		$.plot("#chart", [ d1, d2, d3 ]);
+	});
+</script>
+</head>
+<body>
+<div id="input" class="panel panel-default">
+<div class="panel-body">
+<form method="get">
+<table class="table">
+<tr><td></td><td>Date</td><td>Time</td></tr>
+<tr><td>From</td>
+    <td><input type="date" name="fromDate" value=""/></td>
+    <td><input type="time" name="fromTime" value=""/></td></tr>
+<tr><td>To</td>
+    <td><input type="date" name="toDate" value=""/></td>
+    <td><input type="time" name="toTime" value=""/></td></tr>
+</table>
+</form>
+</div>
+</div>
+<div class="container">
+<div id="chart" style="width:800px; height:600px; line-height:1.2em"></div>
+</div>
+</body>
+</html>

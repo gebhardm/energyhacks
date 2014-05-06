@@ -6,9 +6,28 @@
 <title>Fluksometer Database Readings</title>
 <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="js/jquery.min.js"></script>
+<!--<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>-->
 <script type="text/javascript" src="js/jquery.flot.js"></script>
 <script type="text/javascript">
-	$(function() {
+	var fromDate = localStorage.getItem("fromDate");
+	var fromTime = localStorage.getItem("fromTime");
+	var toDate = localStorage.getItem("toDate");
+	var toTime = localStorage.getItem("toTime");
+// executed after rendering the complete page; alternative: $(function() {});
+	$(document).ready(function() {
+		var dNow = new Date();
+		var localDate = dNow.getDate() + '.' + (dNow.getMonth()+1) + '.' + dNow.getFullYear();
+		var localTime = dNow.getHours() + ':' + dNow.getMinutes() + ':' + dNow.getSeconds();
+
+		if (fromDate == null || fromDate == '') fromDate = localDate;
+		if (fromTime == null || fromTime == '') fromTime = localTime;
+		if (toDate == null || toDate == '') toDate = localDate;
+		if (toTime == null || toTime == '') toTime = localTime;
+		$('#fromDate').val(fromDate);
+		$('#fromTime').val(fromTime);
+		$('#toDate').val(toDate);
+		$('#toTime').val(toTime);	
+
 		var d1 = [];
 		for (var i = 0; i < 14; i += 0.5) {
 			d1.push([i, Math.sin(i)]);
@@ -16,21 +35,36 @@
 		var d2 = [[0, 3], [4, 8], [8, 5], [9, 13]];
 		var d3 = [[0, 12], [7, 12], null, [7, 2.5], [12, 2.5]];
 		$.plot("#chart", [ d1, d2, d3 ]);
+
+		$('#refresh').click(function() {
+		localStorage.setItem('fromDate', '');
+		localStorage.setItem('fromTime', '');
+		localStorage.setItem('toDate', '');
+		localStorage.setItem('toTime', '');
+		});
+
+		$('#submit').click(function() {
+		localStorage.setItem('fromDate', $('#fromDate').val());
+		localStorage.setItem('fromTime', $('#fromTime').val());
+		localStorage.setItem('toDate', $('#toDate').val());
+		localStorage.setItem('toTime', $('#toTime').val());
+		});
 	});
 </script>
 </head>
 <body>
 <div id="input" class="panel panel-default">
 <div class="panel-body">
-<form method="get">
+<form method="post" enctype="application/x-www-form-urlencoded" action="/query" >
 <table class="table">
 <tr><td></td><td>Date</td><td>Time</td></tr>
 <tr><td>From</td>
-    <td><input type="date" name="fromDate" value=""/></td>
-    <td><input type="time" name="fromTime" value=""/></td></tr>
+    <td><input id="fromDate" type="date" name="fromDate"/></td>
+    <td><input id="fromTime" type="time" name="fromTime"/></td></tr>
 <tr><td>To</td>
-    <td><input type="date" name="toDate" value=""/></td>
-    <td><input type="time" name="toTime" value=""/></td></tr>
+    <td><input id="toDate" type="date" name="toDate"/></td>
+    <td><input id="toTime" type="time" name="toTime"/></td></tr>
+	<tr><td colspan=3 align="center"><input type="submit" id="submit" value="Submit"/><input type="submit" id="refresh" value="Refresh"/></td></tr>
 </table>
 </form>
 </div>
@@ -40,3 +74,4 @@
 </div>
 </body>
 </html>
+

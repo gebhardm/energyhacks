@@ -5,24 +5,23 @@
 
 #define ledPin 1
 #define AVG 50
+#define DIVIDER 1
 
 //Global variables for Interrupt computation
-unsigned long sum = 0, nHz = 0, microseconds = 0;
+unsigned long sum = 0, Hz = 0, last = 0;
 byte cnt = 0;
+char payload[60];
 
-// The AVRNetIO's MAC as provided by Pollin - use your own unique address
+// The AVRNetIO's MAC as provided by Pollin
 byte mac[]    = { 
   0x00, 0x22, 0xF9, 0x01, 0x2E, 0x49 };
-// The FLM's IP address / the MQTT broker's address
-// The FLM itself publishes on topic /sensor/#, so this is used also to get
-// a generic display capability via the FLM MQTT panel
-// https://github.com/gebhardm/energyhacks/tree/master/RaspberryPi/panel
+// The FLM's IP address
 byte flm[] = { 
   192, 168, 0, 50 };
 
 void callback(char* topic, byte* payload, unsigned int length) {
   if (length>0) {
-    // do something with the payload
+    // do something with the payload - unused here... 
   }
 }
 
@@ -36,14 +35,11 @@ void setup()
     // something went wrong
     while(true)
     { 
-	  // let LED blink to show error condition
       for (int i=0;i<3;i++){
-        digitalWrite(ledPin, HIGH);
-        delay(150);
-        digitalWrite(ledPin, LOW);
-        delay(150);
+        if (digitalRead(ledPin) == LOW) digitalWrite(ledPin, HIGH);
+        else digitalWrite(ledPin, LOW);
       };
-      delay(700);
+      delay(300);
     }
   } 
   else {
@@ -51,15 +47,29 @@ void setup()
   };
   // attach INT0 to the net frequency detection routine
   attachInterrupt(0, interrupt, FALLING);
+  //GICR |= (1 << INT0);
+  //MCUCR |= (1 << ISC11);
+  //sei();
 }
 
-// create topic payload in compliance with FLM topic in JSON
-char* createPayload(long value, char* unit)
+char* createPayload(long value, char* unit, byte dec)
 {
-  char val[10], payload[60];
+  char val[10];
+  int len, dp;
   // build payload [<value>,"<unit>"]
   ltoa(value, val, 10);
-  strcpy(payload,"");
+  // set decimal point
+  len = strlen(val);
+  dp  = len - dec;
+  if (dp > 0) {
+    for(int i=len; i > dp; i--) {
+      val[i+1] = val[i];
+    }
+    if (dp < len)
+      val[dp] = '.';
+  }
+  // now build the payload
+  payload[0] = 0x00;
   strcat(payload,"[");
   strcat(payload,val);
   strcat(payload,",\"");
@@ -72,34 +82,28 @@ void loop()
 {
   client.loop();
   if (client.connected()) {
-  // now publish the readings; gauge is generically used for "gauge display", so this is reused
-    client.publish("/sensor/ADC1/gauge",createPayload((analogRead(A1)*(500000/1023)/100),"mV"));
-    client.publish("/sensor/ADC2/gauge",createPayload((analogRead(A2)*(500000/1023)/100),"mV"));
-    client.publish("/sensor/ADC3/gauge",createPayload((analogRead(A3)*(500000/1023)/100),"mV"));
-    client.publish("/sensor/ADC4/gauge",createPayload((analogRead(A4)*(500000/1023)/100),"mV"));
-    client.publish("/sensor/Net/gauge",createPayload( (long) (1000000000L / nHz),"mHz"));
+    client.publish("/sensor/Temperature1/gauge",createPayload((analogRead(A0)*61-17412),"°C",2));
+    client.publish("/sensor/Temperature2/gauge",createPayload((analogRead(A1)*61-17412),"°C",2));
+    client.publish("/sensor/NetFrequency/gauge",createPayload(Hz,"Hz",3));
   }
   else {
-    // reconnect on lost connection
     client.connect("arduino");
   }
-  // blink for convenience
-  digitalWrite(ledPin, HIGH);
-  delay(250);
-  digitalWrite(ledPin, LOW);
-  delay(750);
+  delay(1000);
 }
 
 void interrupt( void )
+//ISR(INT0_vect)
 {
-  // attach an AC signal via diode and 10k resistor to INT0
-  sum += ( micros() - microseconds );
-  microseconds = micros();  
+  unsigned long usec = micros(); 
+  unsigned long diff = usec - last;
+  sum += diff;
   cnt++;
-  // calculate the average net frequency detected during AVG reads
   if (cnt == AVG) {
-    nHz = sum / cnt;
+    sum /= AVG;
+    Hz = 1000000000UL / sum;
+    sum = 0;
     cnt = 0;
-    sum = 0;  
   }
+  last = usec;
 }

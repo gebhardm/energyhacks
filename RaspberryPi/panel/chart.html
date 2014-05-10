@@ -16,8 +16,18 @@
 // executed after rendering the complete page; alternative: $(function() {});
 	$(document).ready(function() {
 		var dNow = new Date();
-		var localDate = dNow.getDate() + '.' + (dNow.getMonth()+1) + '.' + dNow.getFullYear();
-		var localTime = dNow.getHours() + ':' + dNow.getMinutes() + ':' + dNow.getSeconds();
+                var day = dNow.getDate();
+                day = (day<10?'0'+day:day);
+                var month = dNow.getMonth()+1;
+                month = (month<10?'0'+month:month);
+                var hrs = dNow.getHours();
+                hrs = (hrs<10?'0'+hrs:hrs);
+                var min = dNow.getMinutes();
+                min = (min<10?'0'+min:min);
+                var sec = dNow.getSeconds();
+                sec = (sec<10?'0'+sec:sec);
+		var localDate = dNow.getFullYear() + '-' + month + '-' + day;
+		var localTime = hrs + ':' + min + ':' + sec;
 
 		if (fromDate == null || fromDate == '') fromDate = localDate;
 		if (fromTime == null || fromTime == '') fromTime = localTime;
@@ -55,7 +65,7 @@
 <body>
 <div id="input" class="panel panel-default">
 <div class="panel-body">
-<form method="post" enctype="application/x-www-form-urlencoded" action="/query" >
+<form method="post" enctype="application/x-www-form-urlencoded">
 <table class="table">
 <tr><td></td><td>Date</td><td>Time</td></tr>
 <tr><td>From</td>

@@ -15,7 +15,7 @@ var fs = require('fs');
 var url = require('url');
 var path = require('path');
 var qs = require('querystring');
-var series = {};
+var socket = require('socket.io');
 
 // prepare database connection
 var database = mysql.createConnection(
@@ -26,6 +26,15 @@ var database = mysql.createConnection(
       database : 'flm'
    }
 );
+
+// prepare websocket
+var io = socket.listen(http);
+io.set('log level', 1);
+// connect to the database
+database.connect(function(err) {
+  if (err) throw err;
+  //console.log('Database flm connected');
+});
 
 // Serve the http request
 function handler (req, res) {
@@ -45,29 +54,23 @@ function handler (req, res) {
             });
             req.on('end', function () {
                var params = qs.parse(content);
-               var fromDateTime = params["fromDate"] + ' ' + params["fromTime"];
-               var toDateTime = params["toDate"] + ' ' + params["toTime"];
-               // connect to the database
-               database.connect(function(err) {
-                 if (err) throw err;
-                 console.log('Database flm connected');
-               });
+               var fromTimestamp = Date.parse(params["fromDate"] + ' ' + params["fromTime"])/1000;
+               var toTimestamp = Date.parse(params["toDate"] + ' ' + params["toTime"])/1000;
+               //console.log(fromTimestamp + ' - ' + toTimestamp);
                // fetch data
                var queryStr = 'SELECT * FROM flmdata WHERE timestamp >= \''
-                              + fromDateTime + '\' AND timestamp <= \''
-                              + toDateTime + '\';';
+                              + fromTimestamp + '\' AND timestamp <= \''
+                              + toTimestamp + '\';';
                var query = database.query(queryStr, function(err, rows, fields) {
                   if (err) throw err;
+                  var series = {};
                   for (var i in rows) {
                     if (series[rows[i].sensor] == null) series[rows[i].sensor] = new Array();
-                    series[rows[i].sensor].push([rows[i].timestamp,rows[i].value]);                    
+                    series[rows[i].sensor].push([rows[i].timestamp*1000,rows[i].value]);                    
                   }
-                 console.log(series);
-               });
-               // close the database
-               database.end(function(err){
-                 if (err) throw err;
-                 console.log('Database closed');
+                  //console.log(series);
+                  io.sockets.emit('hello', 'wakeup');
+                  //io.sockets.emit('series', series);
                });
             });
          }

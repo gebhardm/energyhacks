@@ -33,11 +33,12 @@ mqttclient.on('message', function(topic, payload) {
          var gauge = JSON.parse(payload);
 // FLM gauges consist of timestamp, value, and unit
          if (gauge.length == 3) {
-            var date = new Date(gauge[0]*1000).toISOString().slice(0, 19).replace('T', ' ');
+            // use the following conversion when using mySQL TIMESTAMP and replace gauge[0]
+            //var date = new Date(gauge[0]*1000).toISOString().slice(0, 19).replace('T', ' ');
             var insertStr = 'INSERT INTO flmdata'
                           + ' (sensor, timestamp, value, unit)'
                           + ' VALUES ("' + subtopics[2] + '",'
-                          + ' "' + date + '",'
+                          + ' "' + gauge[0] + '",'
                           + ' "' + gauge[1] + '",'
                           + ' "' + gauge[2] + '")'
                           + ' ON DUPLICATE KEY UPDATE'
@@ -65,7 +66,7 @@ database.connect(function(err) {
 // create the persistence 
 var createTabStr = 'CREATE TABLE IF NOT EXISTS flmdata'
                  + '( sensor CHAR(32),'
-                 + '  timestamp TIMESTAMP,'
+                 + '  timestamp CHAR(10),'                 //'  timestamp TIMESTAMP,'
                  + '  value CHAR(5),'
                  + '  unit CHAR(5),'
                  + '  UNIQUE KEY (sensor, timestamp));';

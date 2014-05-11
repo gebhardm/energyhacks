@@ -7,7 +7,7 @@ FLM sensor gauges; the index_new.html includes the counters also.
 How to use
 ==========
 To run the script install node.js; easiest from http://github.com/joyent/node.
-Checkout v0.10.26-release, ./configure,  make and (sudo) make install.
+Checkout v0.10.28-release, ./configure,  make and (sudo) make install.
 Install the MQTT and socket.io modules with "npm install mqtt socket.io".
 On a running node.js installation just run the ./run.sh script to start
 the server - be aware to adapt the MQTT client address in the serve_mqtt.js
@@ -30,3 +30,18 @@ All code, corresponding to the sources, under MIT-license.
 
 Note: The script and html works also in other environment with node.js is
 installed; the screenshot FLM_mqtt_panel.png is actually made on my iMac...
+
+Chart display
+=============
+With the script persist_mqtt.js (started using ./persist.sh) FLM readings
+can be pushed into a mySQL database. Beside retrieving the written data with
+mySQL means you may also use the script serve_chart.js (to be started by
+node serve_chart.js) that serves the chart.html to port 8080 of your node
+server. See FLM_DB_readings.png to get an impression on the experimental
+outline of the database view, yet without labels and further UI specialties.
+Be advised to not make the selection interval too large as data transfer may
+lead into a browser hanging...
+
+All stuff under MIT license, without any guarantee ;-)
+
+Markus Gebhard, Karlsruhe, May 11, 2014

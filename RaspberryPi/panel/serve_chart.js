@@ -30,75 +30,76 @@ var database = mysql.createConnection(
 // prepare websocket
 var io = socket.listen(http);
 io.set('log level', 1);
+
 // connect to the database
 database.connect(function(err) {
   if (err) throw err;
-  //console.log('Database flm connected');
 });
 
 // Serve the http request
 function handler (req, res) {
-         var uri = url.parse(req.url).pathname;
-         var filename = path.join(process.cwd(), uri);
+   var uri = url.parse(req.url).pathname;
+   var filename = path.join(process.cwd(), uri);
 
-         var contentTypesByExtension = {
-            '.html': "text/html",
-            '.css': "text/css",
-            '.js': "text/javascript"
-         };
+   var contentTypesByExtension = {
+      '.html': "text/html",
+      '.css': "text/css",
+      '.js': "text/javascript"
+   };
 // compute request method
-         if (req.method == 'POST') {
-            var content = '';
-            req.on('data', function (data) {
-               content += data;
-            });
-            req.on('end', function () {
-               var params = qs.parse(content);
-               var fromTimestamp = Date.parse(params["fromDate"] + ' ' + params["fromTime"])/1000;
-               var toTimestamp = Date.parse(params["toDate"] + ' ' + params["toTime"])/1000;
-               //console.log(fromTimestamp + ' - ' + toTimestamp);
-               // fetch data
-               var queryStr = 'SELECT * FROM flmdata WHERE timestamp >= \''
-                              + fromTimestamp + '\' AND timestamp <= \''
-                              + toTimestamp + '\';';
-               var query = database.query(queryStr, function(err, rows, fields) {
-                  if (err) throw err;
-                  var series = {};
-                  for (var i in rows) {
-                    if (series[rows[i].sensor] == null) series[rows[i].sensor] = new Array();
-                    series[rows[i].sensor].push([rows[i].timestamp*1000,rows[i].value]);                    
-                  }
-                  //console.log(series);
-                  io.sockets.emit('hello', 'wakeup');
-                  //io.sockets.emit('series', series);
-               });
-            });
-         }
+   if (req.method == 'POST') handlepost(req, res);
+
 // serve requested files
-         fs.exists(filename, function(exists) {
-           if(!exists) {
-             res.writeHead(404, {"Content-Type": "text/plain"});
-             res.write("404 Not Found\n");
-             res.end();
-             return;
-           }
+   fs.exists(filename, function(exists) {
+      if(!exists) {
+        res.writeHead(404, {"Content-Type": "text/plain"});
+        res.write("404 Not Found\n");
+        res.end();
+        return;
+      }
 
-           if (fs.statSync(filename).isDirectory()) filename += '/chart.html';
+      if (fs.statSync(filename).isDirectory()) filename += '/chart.html';
 
-           fs.readFile(filename, "binary", function(err, file) {
-             if(err) {
-                res.writeHead(500, {"Content-Type": "text/plain"});
-                res.write(err + "\n");
-                res.end();
-                return;
-             }
+      fs.readFile(filename, "binary", function(err, file) {
+        if(err) {
+          res.writeHead(500, {"Content-Type": "text/plain"});
+          res.write(err + "\n");
+          res.end();
+          return;
+        }
 
-             var headers = {};
-             var contentType = contentTypesByExtension[path.extname(filename)];
-             if (contentType) headers["Content-Type"] = contentType;
-             res.writeHead(200, headers);
-             res.write(file, "binary");
-              res.end();
-           });
-         });
+        var headers = {};
+        var contentType = contentTypesByExtension[path.extname(filename)];
+        if (contentType) headers["Content-Type"] = contentType;
+        res.writeHead(200, headers);
+        res.write(file, "binary");
+        res.end();
+      });
+   });
 };
+
+function handlepost(req, res) {
+   var content = '';
+   req.on('data', function (data) {
+     content += data;
+   });
+   req.on('end', function () {
+     var params = qs.parse(content);
+     var fromTimestamp = Date.parse(params["fromDate"] + ' ' + params["fromTime"])/1000;
+     var toTimestamp = Date.parse(params["toDate"] + ' ' + params["toTime"])/1000;
+     //console.log(fromTimestamp + ' - ' + toTimestamp);
+// fetch data
+     var queryStr = 'SELECT * FROM flmdata WHERE timestamp >= \''
+                  + fromTimestamp + '\' AND timestamp <= \''
+                  + toTimestamp + '\';';
+     var query = database.query(queryStr, function(err, rows, fields) {
+       if (err) throw err;
+       var series = {};
+       for (var i in rows) {
+         if (series[rows[i].sensor] == null) series[rows[i].sensor] = new Array();
+         series[rows[i].sensor].push([rows[i].timestamp*1000,rows[i].value]);                    
+       }
+       io.sockets.emit('series', series);
+     });
+   });
+}

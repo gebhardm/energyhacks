@@ -21,10 +21,16 @@
   socket.on('connect', function () {
     socket.on('series', function (res) { 
       var chart = [];
-      for (var i in res) chart.push(res[i]);
+      for (var i in res) {
+         var serobj = {};
+         serobj["label"] = i;
+         serobj["data"]  = res[i]; 
+         chart.push(serobj);
+      }
       $.plot("#chart", chart, { 
-        xaxis: { mode: "time"}, 
-        yaxis: { min: 0}
+        xaxis: { mode: "time", 
+                 timezone: "browser" }, 
+        yaxis: { min: 0 }
       });
     });
   })
@@ -88,11 +94,6 @@
 </div>
 <div class="container">
 <div id="chart" style="width:800px; height:600px; line-height:1.2em"></div>
-</div>
-<div class="panel">
-<div class="panel-body">
-<small id="dump"></small>
-</div>
 </div>
 </body>
 </html>

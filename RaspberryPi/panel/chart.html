@@ -27,7 +27,12 @@
          serobj["data"]  = res[i]; 
          chart.push(serobj);
       }
-      $.plot("#chart", chart, { 
+      var offset = 20; //px
+      var width = $(document).width();
+      width -= offset * 2;
+      var height = width * 3 / 4;
+      $("#chart").width(width).height(height).offset({left:offset});
+      $("#chart").plot(chart, { 
         xaxis: { mode: "time", 
                  timezone: "browser" }, 
         yaxis: { min: 0 }
@@ -92,8 +97,6 @@
 </form>
 </div>
 </div>
-<div class="container">
-<div id="chart" style="width:800px; height:600px; line-height:1.2em"></div>
-</div>
+<div id="chart"></div>
 </body>
 </html>

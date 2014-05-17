@@ -15,31 +15,60 @@
   var fromTime = localStorage.getItem("fromTime");
   var toDate = localStorage.getItem("toDate");
   var toTime = localStorage.getItem("toTime");
+  var chart = new Array();
+  var options = {
+        xaxis: { mode: "time", 
+                 timezone: "browser" },
+        yaxis: { min: 0 },
+        selection: { mode: "x" }
+      };
 
 // prepare channel to server
   var socket = io.connect(location.host);
   socket.on('connect', function () {
+// get information to be printed within the chart div
+    socket.on('info', function(info) {
+      $("#info").html(info);
+    });
+// plot the received data series
     socket.on('series', function (res) {
-      var chart = [];
+      //var chart = [];
+// format the data object
       for (var i in res) {
          var serobj = {};
          serobj["label"] = i;
          serobj["data"] = res[i];
          chart.push(serobj);
       }
+// size the output area
       var offset = 20; //px
       var width = $(document).width();
       width -= offset * 2;
       var height = width * 3 / 4;
       $("#chart").width(width).height(height).offset({left:offset});
-      $("#chart").plot(chart, {
-        xaxis: { mode: "time",
-                 timezone: "browser" },
-        yaxis: { min: 0 }
+// and finally plot the graph
+      $("#chart").plot(chart, options);
+// process selection time interval
+      $("#chart").bind("plotselected", function(event, range) {
+        var selFrom = range.xaxis.from.toFixed(0);
+        var selTo = range.xaxis.to.toFixed(0);
+        var selChart = new Array();
+// filter values within the selected time interval
+        for (var i in chart) {
+          var selObj = {};
+          selObj["label"] = chart[i].label;
+          selObj["data"] = chart[i].data.filter(function(v) {return v[0] >= selFrom && v[0] <= selTo});
+          selChart.push(selObj);
+        }
+        $("#chart").plot(selChart, options);
+        $("#info").html('<div align=\"center\"><button id=\"reset\">Reset</button></div>');
+// redraw the queried data
+        $("#reset").click( function() {
+          $("#chart").plot(chart, options);
+        });
       });
     });
-  })
-
+  });
 // executed after rendering the complete page; alternative: $(function() {});
   $(document).ready(function() {
     var dNow = new Date();

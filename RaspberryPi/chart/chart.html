@@ -1,0 +1,33 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="FLM database chart">
+<title>Fluksometer Database Readings</title>
+<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/socket.io.min.js"></script>
+<script type="text/javascript" src="js/jquery.flot.js"></script>
+<script type="text/javascript" src="js/jquery.flot.time.js"></script>
+<script type="text/javascript" src="js/jquery.flot.selection.js"></script>
+<script type="text/javascript" src="js/flm.chart.js"></script>
+</head>
+<body>
+<div id="input" class="panel panel-default">
+<div class="panel-body">
+<table class="table">
+<tr><td></td><td>Date</td><td>Time</td></tr>
+<tr><td>From</td>
+    <td><input id="fromDate" type="date" name="fromDate"/></td>
+    <td><input id="fromTime" type="time" name="fromTime"/></td></tr>
+<tr><td>To</td>
+    <td><input id="toDate" type="date" name="toDate"/></td>
+    <td><input id="toTime" type="time" name="toTime"/></td></tr>
+<tr><td colspan=3 align="center"><button id="submit">Submit</button><button id="refresh">Refresh</button></td></tr>
+</table>
+</div>
+</div>
+<div id="chart"></div>
+<span id="info"></span>
+</body>
+</html>

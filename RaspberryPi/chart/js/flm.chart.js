@@ -45,7 +45,7 @@ socket.on('connect', function () {
     var height = width * 3 / 4;
     $("#chart").width(width).height(height).offset({left:offset});
 // and finally plot the graph
-    $('#info').html('');
+    $("#info").text('');
     $("#chart").plot(chart, options);
 // process selection time interval
     $("#chart").bind("plotselected", function(event, range) {
@@ -91,7 +91,7 @@ $(document).ready(function() {
       $('#toTime').val(localTime);
 // clear the chart area
       $('#chart').html('');
-      §('#info').html('');
+      $('#info').html('');
     });
 // prepare and emit the query request
     $('#submit').click(function() {
@@ -111,6 +111,6 @@ function emit() {
   data.toDate = toDate;
   data.toTime = toTime;      
   $("#chart").html('<div align=\"center\">Loading...</div>');
-  §("#info").html('');
+  $("#info").html('');
   socket.emit('query', data);
 }

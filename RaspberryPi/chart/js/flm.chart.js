@@ -11,15 +11,14 @@
    Markus Gebhard, Karlsruhe, May 2014, (c) */
 
 // determine locally stored time interval
-var chart = new Array();
+var chart = new Array(); // the chart series to be displayed
 var options = {
       xaxis: { mode: "time", 
                timezone: "browser" },
       yaxis: { min: 0 },
       selection: { mode: "x" }
-    };
-
-var fromDate, fromTime, toDate, toTime;
+    }; // chart display options
+var fromDate, fromTime, toDate, toTime; // the time interval borders
 
 // prepare channel to server
 var socket = io.connect(location.host);
@@ -30,6 +29,8 @@ socket.on('connect', function () {
   }); //socket.on
 // plot the received data series
   socket.on('series', function (res) {
+// clear any existing series
+   chart = [];
 // format the data object
     for (var i in res) {
       var serobj = {};
@@ -69,6 +70,7 @@ socket.on('connect', function () {
 });
 // executed after rendering the complete page; alternative: $(function() {});
 $(document).ready(function() {
+// set the time interval to the current time
     $('#refresh').click(function() {
       var dNow = new Date();
       var day = dNow.getDate();
@@ -87,7 +89,11 @@ $(document).ready(function() {
       $('#fromTime').val(localTime);
       $('#toDate').val(localDate);
       $('#toTime').val(localTime);
+// clear the chart area
+      $('#chart').html('');
+      §('#info').html('');
     });
+// prepare and emit the query request
     $('#submit').click(function() {
       fromDate = $('#fromDate').val();
       fromTime = $('#fromTime').val();
@@ -97,6 +103,7 @@ $(document).ready(function() {
     });
 });
 
+// emit the query request to the server part
 function emit() {
   var data = {};
   data.fromDate = fromDate;
@@ -104,5 +111,6 @@ function emit() {
   data.toDate = toDate;
   data.toTime = toTime;      
   $("#chart").html('<div align=\"center\">Loading...</div>');
+  §("#info").html('');
   socket.emit('query', data);
 }

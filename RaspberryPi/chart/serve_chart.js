@@ -11,7 +11,7 @@ uses
   socket.io module: http://github.com/learnboost/socket.io
 ************************************************************/
 var mysql = require('mysql');
-var http = require('http').createServer(handler).listen(8081);
+var http = require('http').createServer(handler).listen(8080);
 var fs = require('fs');
 var url = require('url');
 var path = require('path');

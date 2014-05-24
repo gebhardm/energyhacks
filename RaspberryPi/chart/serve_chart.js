@@ -18,24 +18,17 @@ var path = require('path');
 var qs = require('querystring');
 var socket = require('socket.io');
 
-// prepare database connection
-var database = mysql.createConnection(
-   {
+var dbaccess = {
       host : 'localhost',
       user : 'pi',
       password : 'raspberry',
       database : 'flm'
-   }
-);
+    };
+
 
 // prepare websocket
 var io = socket.listen(http);
 io.set('log level', 1);
-
-// connect to the database
-database.connect(function(err) {
-  if (err) throw err;
-});
 
 // Serve the http request
 function handler (req, res) {
@@ -84,6 +77,12 @@ io.sockets.on('connection', function(socket) {
 function handlequery(data) {
   var fromTimestamp = Date.parse(data.fromDate + ' ' + data.fromTime)/1000;
   var toTimestamp = Date.parse(data.toDate + ' ' + data.toTime)/1000;
+
+// prepare database connection
+  var database = mysql.createConnection(dbaccess);
+  database.connect(function(err) {
+    if (err) throw err;
+  });
 // fetch flm data from database
   var queryStr = 'SELECT * FROM flmdata WHERE timestamp >= \''
                   + fromTimestamp + '\' AND timestamp <= \''
@@ -95,6 +94,9 @@ function handlequery(data) {
       if (series[rows[i].sensor] == null) series[rows[i].sensor] = new Array();
         series[rows[i].sensor].push([rows[i].timestamp*1000,rows[i].value]);                    
     }
+// send data to requester
     io.sockets.emit('series', series);
+// ...and close the database again
+    database.end();
   });
 }

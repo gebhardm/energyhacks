@@ -1,7 +1,8 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="FLM database chart">
 <title>Fluksometer Database Readings</title>
 <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
@@ -13,21 +14,26 @@
 <script type="text/javascript" src="js/flm.chart.js"></script>
 </head>
 <body>
+<div class="jumbotron">
+<h4>Specify time interval <small> to select FLM data from</small></h4>
 <div id="input" class="panel panel-default">
 <div class="panel-body">
-<table class="table">
-<tr><td></td><td>Date</td><td>Time</td></tr>
-<tr><td>From</td>
-    <td><input id="fromDate" type="date" name="fromDate"/></td>
-    <td><input id="fromTime" type="time" name="fromTime"/></td></tr>
-<tr><td>To</td>
-    <td><input id="toDate" type="date" name="toDate"/></td>
-    <td><input id="toTime" type="time" name="toTime"/></td></tr>
-<tr><td colspan=3 align="center"><button id="submit">Submit</button><button id="refresh">Refresh</button></td></tr>
+<table class="table table-hover">
+<tr><td></td><th>Date</th><th>Time</th></tr>
+<tr><th>From</th>
+    <td><input class="form-control" id="fromDate" type="date" name="fromDate" placeholder="YYYY-MM-DD"/></td>
+    <td><input class="form-control" id="fromTime" type="time" name="fromTime" placeholder="HH:MM:SS"/></td></tr>
+<tr><th>To</th>
+    <td><input class="form-control" id="toDate" type="date" name="toDate" placeholder="YYYY-MM-DD"/></td>
+    <td><input class="form-control" id="toTime" type="time" name="toTime" placeholder="HH:MM:SS"/></td></tr>
+<tr><td colspan=3 align="center"><button class="btn btn-success" id="submit">Submit</button><button class="btn btn-danger" id="refresh">Refresh</button></td></tr>
 </table>
 </div>
 </div>
-<div id="chart"></div>
-<span id="info"></span>
+</div>
+<div class="container-fluid">
+  <div id="chart"></div>
+  <div id="info"></div>
+</div>
 </body>
 </html>

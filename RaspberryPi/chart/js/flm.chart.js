@@ -60,7 +60,7 @@ socket.on('connect', function () {
         selChart.push(selObj);
       } //for
       $("#chart").plot(selChart, options);
-      $("#info").html('<div align=\"center\"><button id=\"reset\">Reset</button></div>');
+      $("#info").html('<div align=\"center\"><button class=\"btn btn-primary btn-sm\" id=\"reset\">Reset</button></div>');
 // redraw the queried data
       $("#reset").click( function() {
         $("#chart").plot(chart, options);

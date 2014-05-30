@@ -18,16 +18,32 @@
 <h4>Specify time interval <small> to select FLM data from</small></h4>
 <div id="input" class="panel panel-default">
 <div class="panel-body">
-<table class="table table-hover">
-<tr><td></td><th>Date</th><th>Time</th></tr>
-<tr><th>From</th>
-    <td><input class="form-control" id="fromDate" type="date" name="fromDate" placeholder="YYYY-MM-DD"/></td>
-    <td><input class="form-control" id="fromTime" type="time" name="fromTime" placeholder="HH:MM:SS"/></td></tr>
-<tr><th>To</th>
-    <td><input class="form-control" id="toDate" type="date" name="toDate" placeholder="YYYY-MM-DD"/></td>
-    <td><input class="form-control" id="toTime" type="time" name="toTime" placeholder="HH:MM:SS"/></td></tr>
-<tr><td colspan=3 align="center"><button class="btn btn-success" id="submit">Submit</button><button class="btn btn-danger" id="refresh">Refresh</button></td></tr>
-</table>
+<div class="row">
+  <div class="col-xs-4">
+    <strong>From</strong>
+  </div>
+  <div class="col-xs-4">
+    <input class="form-control" id="fromDate" type="date" name="fromDate" placeholder="YYYY-MM-DD"/>
+  </div>
+  <div class="col-xs-4">
+    <input class="form-control" id="fromTime" type="time" name="fromTime" placeholder="HH:MM:SS"/>
+  </div>
+</div>
+<div class="row">
+  <div class="col-xs-4">
+    <strong>To</strong>
+  </div>
+  <div class="col-xs-4">
+    <input class="form-control" id="toDate" type="date" name="toDate" placeholder="YYYY-MM-DD"/>
+  </div>
+  <div class="col-xs-4">
+    <input class="form-control" id="toTime" type="time" name="toTime" placeholder="HH:MM:SS"/>
+  </div>
+</div>
+<div align="center">
+  <button class="btn btn-success" id="submit">Submit</button>
+  <button class="btn btn-danger" id="refresh">Refresh</button>
+</div>
 </div>
 </div>
 </div>

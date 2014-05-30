@@ -1,18 +1,13 @@
 This folder contains some programs and scripts (in own folders) to be used
-on a Raspberry Pi.
-First hack in "FLMtoDB" is a Python script to read local Fluksometer
-[www.flukso.net] data and store this in a MySQL database for later assessment.
-Second hack in "panel" is an adaptation of the mqtt-panel by FabAff to the FLM.
+on a Raspberry Pi; in the first place all programs provided here are used 
+to connect to a Fluksometer (see www.flukso.net), retrieve data, push data
+to an MQTT broker, store data and visualize it.
 
-*.psp are python server page files to be deployed into the web server
-directory of the Raspberry Pi. That is /var/www for Apache; look for
-further details on how to use python for web page display in, for
-example http://webpython.codepoint.net
+chart/ retrieves sensor data from a database and shows it in a flotchart
+panel/ contains an MQTT panel displaying sensor data via a node.js web server
+persist/ actually is used to store FLM data in a database
 
-I use the functionality of http://www.flotcharts.org  to display the data
-graphically.
+Markus Gebhard, Karlsruhe, 2014 (c), all code under MIT license if not
+denoted otherwise.
 
-*.py is the python file to read FLM measurement from the local API; to be
-deployed wherever convenient on the RaspPi, for example /home/pi/Python
-
-*.js are JavaScript files respectively.
+Have fun...

@@ -110,7 +110,7 @@ function emit() {
   data.fromTime = fromTime;
   data.toDate = toDate;
   data.toTime = toTime;      
-  $("#chart").html('<div align=\"center\">Loading...</div>');
+  $("#chart").html('');
   $("#info").html('');
   socket.emit('query', data);
 }

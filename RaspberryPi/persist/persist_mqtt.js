@@ -70,7 +70,7 @@ var createTabStr = 'CREATE TABLE IF NOT EXISTS flmdata'
                  + '  value CHAR(5),'
                  + '  unit CHAR(5),'
                  + '  UNIQUE KEY (sensor, timestamp),'
-                 + '  INDEX idx_time (timestamp)
+                 + '  INDEX idx_time (timestamp)'
                  + ');';
 database.query(createTabStr, function(err, res) {
    if (err) {

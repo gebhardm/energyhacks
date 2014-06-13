@@ -18,4 +18,6 @@ mysql> show databases;
 mysql> show tables;
 mysql> select count(*) from flmdata;
 
-
+Note: If the database flm was not created beforehand, make so by 
+mysql> create database flm;
+mysql> use flm;

@@ -33,7 +33,7 @@ var io = socket.listen(http);
  * 3 - debug
 */
 // define socket.io output
-io.set('log level', 0)
+io.set('log level', 0);
 
 // Subscribe to topic
 io.sockets.on('connection', function (socket) {

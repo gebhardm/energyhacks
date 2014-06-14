@@ -9,7 +9,13 @@ How to use
 To run the script install node.js; easiest from http://github.com/joyent/node.
 Install node.js using the command sequence
 "git checkout v0.10.28-release", "./configure",  "make" and "sudo make install".
+
 Install the MQTT and socket.io modules with "npm install mqtt socket.io".
+ATTENTION: socket.io has incompatibly changed between v0.9 and v1.0 - this panel
+version does work with the v0.9 only; there is a new repository where I will
+keep up with the evolution of the different modules; thus, this repo will stay
+as it is... See http://github.com/gebhardm/flmdisplay
+
 On a running node.js installation just run the ./panel.sh script to start
 the server - be aware to adapt the MQTT client address in the serve_panel.js
 to your local FLM's address.
@@ -28,6 +34,3 @@ All code, corresponding to the sources, under MIT-license.
 
 Note: The script and html works also in other environment with node.js is
 installed; the screenshot FLM_mqtt_panel.png is actually made on my iMac...
-
-Note: socket.io changed incompatibly between v0.9 and v1.0 - the '*_new' files
-refer to the "current" (i.e. v1.0) version of socket.io

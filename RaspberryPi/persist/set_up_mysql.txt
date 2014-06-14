@@ -12,7 +12,7 @@ mysql> set password for 'pi'@'localhost' = password('raspberry');
 mysql> quit
 
 Now you may log on to the database also as user 'pi':
-pi@raspberry ~ $ myql -u pi -p flm
+pi@raspberry ~ $ mysql -u pi -p flm
 
 mysql> show databases;
 mysql> show tables;

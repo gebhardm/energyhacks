@@ -19,7 +19,7 @@ J11 jumper header to see bootloader activity (LEDpin now is 1).
 
 See /AVRNetIO_rbbb_server/ for an easy webserver enabling switching Outputs 1 to 8, getting Inputs 1 to 4, and readings from ADC 1 to 4.
 
-See /AVRNetIO_MQTT/ for a very basic implementation of MQTT publishing to the [Fluksometer's MQTT broker](www.flukso.net) (or any other broker) to display port readings.
+See /AVRNetIO_MQTT/ for a very basic implementation of MQTT publishing to the [Fluksometer's MQTT broker](http://www.flukso.net) (or any other broker) to display port readings.
 
 See /AVRNetIO_MQTT_DS/ to publish temperature data from Dallas DS18x20 sensors
 
@@ -40,6 +40,7 @@ Sources used
 * [sanguino.cc](http://sanguino.cc/)
 * [jcw/ethercard](https://github.com/jcw/ethercard)
 * [ntruchsess/arduino_uip](https://github.com/ntruchsess/arduino_uip)
-* [knolleary/PubSubClient](http://github.com(knolleary/pubsubclient)
+* [knolleary/PubSubClient](https://github.com/knolleary/pubsubclient)
+* [Flukso.net](http://flukso.net)
 
 Markus Gebhard, Karlsruhe, November 2012 - August 2014

@@ -1,13 +1,17 @@
 /* AVRNetIO using MQTT to post sensor readings to the FLM broker */
 
-#define AVRNETIO 0
+#define AVRNETIO 1
 #define DEBUG 0
 
 // use the SPI capability to connect the Ethernet shield
 #include <SPI.h>
 // load the correct Ethernet library for your Arduino/derivate
-//#include <UIPEthernet.h> // https://github.com/ntruchsess/arduino_uip - use with AVRNetIO
-#include <Ethernet.h> // use with Arduino Ethernet or Ethernet Shield
+#if AVRNETIO
+#include <UIPEthernet.h> // https://github.com/ntruchsess/arduino_uip - use with AVRNetIO
+#else
+// /!\ the stupid preprocessor seems to not compile conditional #if on #include !!!
+//#include <Ethernet.h> // use with Arduino Ethernet or Ethernet Shield
+#endif
 // the MQTT publish/subscribe library
 #include <PubSubClient.h>   // https://github.com/knolleary/pubsubclient
 // the Dallas/Maxim one-wire library
@@ -17,7 +21,7 @@
 // http://milesburton.com/Dallas_Temperature_Control_Library
 
 // for translating HEX to printout
-const char PROGMEM hex[16] = {
+const byte hex[16] = {
   '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
 // define the debug LED port
@@ -206,3 +210,4 @@ void loop()
   flashLED();
   delay(1000);
 }
+

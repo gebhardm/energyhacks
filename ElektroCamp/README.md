@@ -1,3 +1,4 @@
+# Elektro:camp presentations
 This folder contains presentation slides of talks held
 at various Elektro Camp events.
 

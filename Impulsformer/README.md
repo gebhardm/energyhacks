@@ -4,6 +4,8 @@ measured by one respective three current clamp(s) (as used by the
 Fluksometer - see www.flukso.net) to an S0-conformant impulse set, 
 in the example case 1000 impulses per measured kWh.
 
+<img src="Impulsformer.jpg" alt="Impulsformer" width=300px>
+
 The basic use of the converter is for the Fluksometer to enhance it
 by one (or three or more, as the used microcontroller's ADCs are not
 fully utilized) analog input(s).
@@ -17,6 +19,8 @@ additional voltage source.
 
 The microcontroller may be driven also with lower Vcc and different
 operating frequency; the given outline of the one clamp variant is working fine...
+
+<img src="1clamp_pulse_conv.jpg" alt="Impulse converter for one clamp" width=300px>
 
 Markus Gebhard, Karlsruhe, Germany, April/May 2012
 

@@ -6,6 +6,8 @@ some software provided by the vendor - but no PC had a RS-485 interface, but
 "pure old legacy RS-232". After some research there are two solutions to
 interfacing RS-485 with "legacy" RS-232.
 
+<img src="RS232-RS485-Conv.jpg" width=400px>
+
 1) RS232-RS485 is a converter that uses RTS/CTS for flow control; the transistor
    is used to configure actual flow control (on high or on low, depending on the
    terminal program used)

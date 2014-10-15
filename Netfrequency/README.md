@@ -3,7 +3,7 @@
 This device shows with 9 LEDs the current frequency on which the grid
 operates.
 
-<img src="Netfrequency.jpg" alt="Netfrequency measurement device" width=300px>
+<img src="Netfrequency.JPG" alt="Netfrequency measurement device" width=300px>
 
 In Europe the mean grid frequency is 50Hz. Due to increasing
 amount of renewable energy put into the grid it is said by the grid

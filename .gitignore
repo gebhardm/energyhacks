@@ -2,3 +2,9 @@
 .DS_Store
 nohup.out
 Thumbs.db
+# ignore the default AVR Studiobuild directory
+default/
+#ignore the AVR Studio project files
+*.aws
+*.aps
+*.pptx

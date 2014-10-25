@@ -1,0 +1,12 @@
+# Keywords for Adafruit DHTxx library
+DHT	KEYWORD1
+DHT11	LITERAL1
+DHT21	LITERAL1
+DHT22	LITERAL1
+begin	KEYWORD2
+readTemperature	KEYWORD2
+convertCtoF	KEYWORD2
+convertFtoC	KEYWORD2
+computeHeatIndex	KEYWORD2
+readHumidity	KEYWORD2
+read	KEYWORD2

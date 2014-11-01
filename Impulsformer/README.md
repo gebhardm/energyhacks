@@ -1,7 +1,7 @@
 # Impulsformer
 "Impulsformer" provides a little converter that transforms the current
 measured by one respective three current clamp(s) (as used by the 
-Fluksometer - see www.flukso.net) to an S0-conformant impulse set, 
+Fluksometer - see [flukso.net](www.flukso.net)) to an S0-compliant impulse set, 
 in the example case 1000 impulses per measured kWh.
 
 <img src="Impulsformer.JPG" alt="Impulsformer" width=300px>

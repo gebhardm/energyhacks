@@ -1,5 +1,5 @@
 #AVRNetIOduino
-This hack is based on different internet sources to actually use the Arduino IDE also on a Pollin AVR NetIO board avaliable as kit for just 20 Euros; see [www.pollin.de](www.pollin.de). This enables a rather cheap variant of the Arduino plus Ethernet option.
+This hack is based on different internet sources to actually use the Arduino IDE also on a Pollin AVR NetIO board avaliable as kit for just 20 Euros; see [www.pollin.de](http://www.pollin.de). This enables a rather cheap variant of the Arduino plus Ethernet option.
 
 The bootloader source file is taken from the Arduino 1.0.2 sources and is enhanced to work also with both an Atmel ATmega644P and ATmega32 on the Pollin AVR NetIO.
 

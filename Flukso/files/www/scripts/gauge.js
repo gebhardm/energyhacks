@@ -1,3 +1,9 @@
+/* ************************************************************
+   Display gauges for the Fluksometer
+   code in parts taken from the mqttws31.js example and
+   jpmens.net: 
+   http://jpmens.net/2014/07/03/the-mosquitto-mqtt-broker-gets-websockets-support/ 
+************************************************************ */
 // objects containing the actual sensor data as string and value
 var gauge = {}, displays = {};
 // create an array of sensor values to pass on to a graph
@@ -5,21 +11,28 @@ var gauge = {}, displays = {};
 var numgauge = 0;
 var limit = 0;
 // link to the web server's IP address for MQTT socket connection
-var client = new Paho.MQTT.Client(location.host, 8083, "", "FLMgauge");
-// define callback routines
-client.onConnect = onConnect;
-client.onConnectionLost = onConnectionLost;
-client.onMessageArrived = onMessageArrived;
-// connect to MQTT broker
-client.connect({
-	onSuccess : onConnect
-});
+var client;
+var reconnectTimeout = 2000;
+
+function MQTTconnect() {
+	client = new Paho.MQTT.Client(location.host, 8083, "", "FLMgauge");
+	var options = {
+        	timeout : 3,
+		onSuccess : onConnect,
+		onFailure : function(message) { setTimeout(MQTTconnect, reconnectTimeout); }
+	};
+	// define callback routines
+	client.onConnectionLost = onConnectionLost;
+	client.onMessageArrived = onMessageArrived;
+	client.connect(options);
+};
 
 function onConnect() {
 	client.subscribe("/sensor/#");
 };
 
 function onConnectionLost(responseObj) {
+	setTimeout(MQTTconnect, reconnectTimeout);
 	if (responseObj.errorCode !== 0)
 		console.log("onConnectionLost:" + responseObj.errorMessage);
 };
@@ -94,7 +107,7 @@ function onMessageArrived(message) {
 					title : sensor,
 					label : unit,
 					min : 0,
-					max : (gauge[sensor] > limit ? gauge[sensor] : limit)
+					max : (gauge[sensor]>limit?gauge[sensor]:limit)
 				});
 			$('#sensor' + sensor).html('(Sensor ' + sensor + ')');
 		};
@@ -112,3 +125,5 @@ function onMessageArrived(message) {
 		break;
 	}
 };
+
+$(document).ready(function() { MQTTconnect(); });

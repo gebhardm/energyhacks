@@ -1,0 +1,55 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <link rel="stylesheet" href="styles/bootstrap.css">
+    <link rel="stylesheet" href="styles/main.css">
+  </head>
+  <body ng-app="flmUiApp">
+    <!--[if lt IE 9]>
+      <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a></p>
+    <![endif]-->
+
+    <!-- Add your site or application content here -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">
+            <img alt="Flukso" src="/img/flukso.logo.png">
+          </a>
+          <ul class="nav">
+            <li><a href="#/status"><status>status</status></a></li>
+            <li><a href="#/wifi"><wifi>wifi</wifi></a></li>
+            <li><a href="#/sensor"><sensor>sensor</sensor></a></li>
+            <li><a href="#/services"><services>services</services></a></li>
+            <li><a href="#/syslog"><syslog>syslog</syslog></a></li>
+            <li><a href="gauge.html"><gauge>gauge</gauge></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" ng-view></div>
+
+    <script src="components/angular/angular.min.js"></script>
+    <script src="components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+
+    <!-- build:js scripts/scripts.js -->
+    <script src="scripts/app.js"></script>
+    <script src="scripts/controllers/main.js"></script>
+    <script src="scripts/controllers/sensor.js"></script>
+    <script src="scripts/controllers/wifi.js"></script>
+    <script src="scripts/controllers/status.js"></script>
+    <script src="scripts/controllers/services.js"></script>
+    <script src="scripts/controllers/syslog.js"></script>
+    <!-- endbuild -->
+  </body>
+</html>

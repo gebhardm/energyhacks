@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FLM web interface via MQTT websockets">
+    <title>Fluksometer Realtime Graph</title>
+    <!-- Bootstrap core CSS -->
+    <link href="styles/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script type="text/javascript" src="scripts/jquery.min.js"></script>
+    <!-- web socket communication -->
+    <script type="text/javascript" src="scripts/mqttws31.js"></script>
+    <!-- Graph display -->
+    <script type="text/javascript" src="scripts/jquery.flot.js"></script>
+    <script type="text/javascript" src="scripts/jquery.flot.time.js"></script>
+    <!-- this page's functionality -->
+	<script type="text/javascript" src="scripts/buttons.js"></script>
+    <script type="text/javascript" src="scripts/graph.js"></script>
+  </head>
+
+  <body>
+    <div id="wrap">
+      <div class="container">
+        <div class="page-header">
+          <h1>FluksoGraph</h1>
+        </div>
+        <div id="graph">
+        </div>
+	<div class="panel panel-default">
+	  <div class="panel-body" id="choices">
+	  </div>
+	</div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <b>Latest MQTT message: </b> <small id="message">no message received</small>
+          </div>
+        </div>
+        <div class="footer">
+          <small>
+            <p class="text-center">FLM <a href="http://github.com/gebhardm/flmdisplay">Graph Display</a> &copy; 2014</p>
+          </small>
+        </div>
+        <div class="panel-body" align="center">
+		  <button class="btn btn-primary btn-sm" id="sel_gge">Gauge</button>
+          <button class="btn btn-primary btn-sm" id="sel_pnl">Panel</button>
+          <button class="btn btn-primary btn-sm" id="sel_gph">Graph</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

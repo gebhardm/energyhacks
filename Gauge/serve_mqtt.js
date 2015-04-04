@@ -16,9 +16,11 @@ var httpport = 1080;
 
 // use mqtt for client, socket.io for push,
 var mqtt = require("mqtt");
+
 var mqttclient;
+
 // specify here your MQTT broker's data
-var mqttbroker = '192.168.0.50', mqttport = '1883';
+var mqttbroker = "192.168.0.50", mqttport = "1883";
 
 var http = require("http").createServer(httphandler).listen(httpport);
 
@@ -34,7 +36,10 @@ var io = require("socket.io")(http);
 var sensors = {};
 
 function mqttconnect() {
-    mqttclient = mqtt.createClient(mqttport, mqttbroker);
+    mqttclient = mqtt.connect({
+        port: mqttport,
+        host: mqttbroker
+    });
     // handle socketio requests
     io.on("connection", function(socket) {
         // handle subscription request(s)
@@ -46,7 +51,6 @@ function mqttconnect() {
     mqttclient.on("message", function(topic, payload) {
         var topicArray = topic.split("/");
         switch (topicArray[1]) {
-
           case "sensor":
             handle_sensor(topicArray, payload);
             break;
@@ -57,16 +61,13 @@ function mqttconnect() {
         // emit received message to socketio listener
         io.sockets.emit("mqtt", {
             topic: topic,
-            payload: payload
+            payload: payload.toString()
         });
     });
     // handle the sensor readings
     function handle_sensor(topicArray, payload) {
         switch (topicArray[3]) {
-			case "device":
-				break;
-			
-			case "gauge":
+          case "gauge":
             var gauge = JSON.parse(payload);
             // FLM gauges consist of timestamp, value, and unit
             if (gauge.length == 2) {
@@ -79,7 +80,7 @@ function mqttconnect() {
             // gauge length 2 is sent from Arduino sensors (in my case)
             break;
 
-          case "counter":
+          default:
             break;
         }
     }

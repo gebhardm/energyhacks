@@ -43,10 +43,10 @@ function mqttconnect() {
     // log connection
     mqttclient.on("connect", function() {
         console.log("Connected to " + mqttbroker + ":" + mqttport);
-	});
-	mqttclient.on("error", function() {
-		console.log("MQTT client raised an error...");
-	});
+    });
+    mqttclient.on("error", function() {
+        console.log("MQTT client raised an error...");
+    });
     // handle socketio requests
     io.on("connection", function(socket) {
         // handle subscription request(s)

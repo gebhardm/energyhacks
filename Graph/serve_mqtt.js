@@ -55,7 +55,10 @@ function mqttconnect() {
         });
     });
     // handle mqtt messages
-    mqttclient.on("message", function(topic, payload) {
+    mqttclient.on("message", function(topic, message) {
+        // the payload format is BUFFER, so convert it to JSON
+        var payload = message.toString();
+        payload = JSON.parse(payload);
         var topicArray = topic.split("/");
         switch (topicArray[1]) {
           case "sensor":
@@ -68,23 +71,25 @@ function mqttconnect() {
         // emit received message to socketio listener
         io.sockets.emit("mqtt", {
             topic: topic,
-            payload: payload.toString()
+            payload: JSON.stringify(payload)
         });
     });
     // handle the sensor readings
     function handle_sensor(topicArray, payload) {
         switch (topicArray[3]) {
           case "gauge":
-            var gauge = JSON.parse(payload.toString());
             // FLM gauges consist of timestamp, value, and unit
-            if (gauge.length == 2) {
+            switch (payload.length) {
+              case 2:
+                // gauge length 2 is sent from Arduino sensors (in my case)
                 // enhance payload w/o timestamp by current timestamp
                 var now = parseInt(new Date().getTime() / 1e3);
-                var new_payload = [];
-                new_payload.push(now, gauge[0], gauge[1]);
-                payload = JSON.stringify(new_payload);
+                payload.unshift(now);
+                break;
+
+              default:
+                break;
             }
-            // gauge length 2 is sent from Arduino sensors (in my case)
             break;
 
           default:

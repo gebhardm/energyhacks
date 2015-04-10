@@ -20,7 +20,7 @@ var mqtt = require("mqtt");
 var mqttclient;
 
 // specify your MQTT broker's data here
-var mqttbroker = "localhost", mqttport = "1883";
+var mqttbroker = "192.168.0.50", mqttport = "1883";
 
 var http = require("http").createServer(httphandler).listen(httpport);
 

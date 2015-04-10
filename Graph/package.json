@@ -1,0 +1,30 @@
+{
+  "name": "Graph",
+  "version": "1.0.0",
+  "description": "MQTT graph display using flot charts",
+  "main": "serve_mqtt.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/gebhardm/energyhacks"
+  },
+  "keywords": [
+    "MQTT",
+    "flot",
+    "graph",
+    "fluksometer",
+    "FLM"
+  ],
+  "author": "Markus Gebhard, Karlsruhe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gebhardm/energyhacks/issues"
+  },
+  "homepage": "https://github.com/gebhardm/energyhacks",
+  "dependencies": {
+    "mqtt": "^1.1.3",
+    "socket.io": "^1.3.5"
+  }
+}

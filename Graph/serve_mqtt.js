@@ -125,7 +125,7 @@ function httphandler(req, res) {
             res.end();
             return;
         }
-        if (fs.statSync(filename).isDirectory()) filename += "/gauge.html";
+        if (fs.statSync(filename).isDirectory()) filename += "/graph.html";
         fs.readFile(filename, "binary", function(err, file) {
             if (err) {
                 res.writeHead(500, {

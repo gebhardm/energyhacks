@@ -1,6 +1,9 @@
 #Simple MQTT Gauges
 
-This hack is a tiny node.js based web server that subscribes to an MQTT topic from a sensor publisher and displays the received values as gauges.
+This hack is a tiny node.js based web server that subscribes to an MQTT topic from a sensor publisher and displays the received values as gauges; it computes payloads with the format 
+
+     [<value:number(int or float)>,"<unit:string>"]
+
 Actually this is a rip of the Fluksometer display to be found in [gebhardm/flmdisplay](https://github.com/gebhardm/flmdisplay/tree/master/combined)
 
 <img src="MQTTgauges.png" width=500px>
@@ -13,7 +16,13 @@ after having installed [node.js](http://nodejs.org) and the node modules **mqtt*
 
     npm install mqtt socket.io
     
-Access the served web page on port 1080 or whatever port you use in the *serve_mqtt.js*.
+For convenience you may just use
+
+    npm install
+    
+with the package.json file defining all necessary dependencies.    
+    
+Access the served web page on port **1080** or whatever port you deine in the *serve_mqtt.js*.
 
     var httpport = 1080;
     

@@ -2,14 +2,14 @@
  * This is script to serve a gauge display on received MQTT messages
  * topic: /sensor/<sensor_id>/gauge
  * payload: [<timestamp>, <value>, <unit>]
- * Markus Gebhard, Karlsruhe, 01/2015
+ * Markus Gebhard, Karlsruhe, 2015
  *
  * Released under the MIT license. See LICENSE file for details.
  *
  * Static http server part taken from Ryan Florence (rpflorence on github)
  * https://gist.github.com/rpflorence/701407
  * ************************************************************
- * Note: Use socket.io v1.0 for this script...
+ * Note: see package.json for dependencies
  */
 // use http for page serving, fs for getting the *.html files
 var httpport = 1080;
@@ -19,7 +19,7 @@ var mqtt = require("mqtt");
 
 var mqttclient;
 
-// specify here your MQTT broker's data
+// specify your MQTT broker's data here
 var mqttbroker = "192.168.0.50", mqttport = "1883";
 
 var http = require("http").createServer(httphandler).listen(httpport);
@@ -36,16 +36,10 @@ var io = require("socket.io")(http);
 var sensors = {};
 
 function mqttconnect() {
+    // create the MQTT connection
     mqttclient = mqtt.connect({
-        host: mqttbroker,
-        port: mqttport
-    });
-    // log connection
-    mqttclient.on("connect", function() {
-        console.log("Connected to " + mqttbroker + ":" + mqttport);
-    });
-    mqttclient.on("error", function() {
-        console.log("MQTT client raised an error...");
+        port: mqttport,
+        host: mqttbroker
     });
     // handle socketio requests
     io.on("connection", function(socket) {
@@ -54,12 +48,28 @@ function mqttconnect() {
             mqttclient.subscribe(data.topic);
         });
     });
+    // check MQTT connection
+    mqttclient.on("connect", function() {
+        console.log("Connected: ", mqttbroker, ":", mqttport);
+    });
+    // log error from MQTT client
+    mqttclient.on("error", function() {
+        console.log("The MQTT client raised an error ...");
+    });
     // handle mqtt messages
     mqttclient.on("message", function(topic, message) {
-        // the payload format is BUFFER, so convert it to JSON
-        var payload = message.toString();
-        payload = JSON.parse(payload);
+        // split topic into array to check for sub-topics
         var topicArray = topic.split("/");
+        // now deal with the payload, which is sent as BUFFER object
+        var payload = message.toString();
+        // don't handle messages with weird tokens, e.g. compression
+        try {
+            // deal with the JSON decoded payload from here
+            payload = JSON.parse(payload);
+        } catch (error) {
+            return;
+        }
+        // compute different sub-topics here
         switch (topicArray[1]) {
           case "sensor":
             handle_sensor(topicArray, payload);
@@ -68,7 +78,8 @@ function mqttconnect() {
           default:
             break;
         }
-        // emit received message to socketio listener
+        // emit received message to socket.io listener
+        // a stringified JSON object is passed on
         io.sockets.emit("mqtt", {
             topic: topic,
             payload: JSON.stringify(payload)
@@ -79,15 +90,13 @@ function mqttconnect() {
         switch (topicArray[3]) {
           case "gauge":
             // FLM gauges consist of timestamp, value, and unit
+            // gauge length 2 is sent from Arduino sensors (in my case):
+            // [<value:float>,"<unit>:string"]
             switch (payload.length) {
               case 2:
-                // gauge length 2 is sent from Arduino sensors (in my case)
                 // enhance payload w/o timestamp by current timestamp
                 var now = parseInt(new Date().getTime() / 1e3);
                 payload.unshift(now);
-                break;
-
-              default:
                 break;
             }
             break;
@@ -116,7 +125,7 @@ function httphandler(req, res) {
             res.end();
             return;
         }
-        if (fs.statSync(filename).isDirectory()) filename += "/graph.html";
+        if (fs.statSync(filename).isDirectory()) filename += "/gauge.html";
         fs.readFile(filename, "binary", function(err, file) {
             if (err) {
                 res.writeHead(500, {

@@ -36,108 +36,113 @@ var io = require("socket.io")(http);
 var sensors = {};
 
 function mqttconnect() {
-	mqttclient = mqtt.connect({
-			port : mqttport,
-			host : mqttbroker
-		});
-	// handle socketio requests
-	io.on("connection", function (socket) {
-		// handle subscription request(s)
-		socket.on("subscribe", function (data) {
-			mqttclient.subscribe(data.topic);
-		});
-	});
-	// check connection
-	mqttclient.on("connect", function () {
-		console.log("Connected: ", mqttbroker, ":", mqttport);
-	});
-	mqttclient.on("error", function () {
-		console.log("An error occurred...");
-	});
-	// handle mqtt messages
-	mqttclient.on("message", function (topic, message) {
-		var topicArray = topic.split("/");
-		var payload = message.toString();
-		// don't handle messages with weird tokens, e.g. compression
-		try {
-			payload = JSON.parse(payload);
-		} catch (error) {
-			return;
-		}
-		switch (topicArray[1]) {
-		case "sensor":
-			handle_sensor(topicArray, payload);
-			break;
+    // create the MQTT connection
+    mqttclient = mqtt.connect({
+        port: mqttport,
+        host: mqttbroker
+    });
+    // handle socketio requests
+    io.on("connection", function(socket) {
+        // handle subscription request(s)
+        socket.on("subscribe", function(data) {
+            mqttclient.subscribe(data.topic);
+        });
+    });
+    // check MQTT connection
+    mqttclient.on("connect", function() {
+        console.log("Connected: ", mqttbroker, ":", mqttport);
+    });
+    // log error from MQTT client
+    mqttclient.on("error", function() {
+        console.log("The MQTT client raised an error ...");
+    });
+    // handle mqtt messages
+    mqttclient.on("message", function(topic, message) {
+        // split topic into array to check for sub-topics
+        var topicArray = topic.split("/");
+        // now deal with the payload, which is sent as BUFFER object
+        var payload = message.toString();
+        // don't handle messages with weird tokens, e.g. compression
+        try {
+            // deal with the JSON decoded payload from here
+            payload = JSON.parse(payload);
+        } catch (error) {
+            return;
+        }
+        // compute different sub-topics here
+        switch (topicArray[1]) {
+          case "sensor":
+            handle_sensor(topicArray, payload);
+            break;
 
-		default:
-			break;
-		}
-		// emit received message to socketio listener
-		io.sockets.emit("mqtt", {
-			topic : topic,
-			payload : JSON.stringify(payload)
-		});
-	});
-	// handle the sensor readings
-	function handle_sensor(topicArray, payload) {
-		switch (topicArray[3]) {
-		case "gauge":
-			// FLM gauges consist of timestamp, value, and unit
-			// gauge length 2 is sent from Arduino sensors (in my case)
-			switch (payload.length) {
-			case 2:
-				// enhance payload w/o timestamp by current timestamp
-				var now = parseInt(new Date().getTime() / 1e3);
-				payload.unshift(now);
-				break;
-			}
-			break;
+          default:
+            break;
+        }
+        // emit received message to socket.io listener
+        // a stringified JSON object is passed on
+        io.sockets.emit("mqtt", {
+            topic: topic,
+            payload: JSON.stringify(payload)
+        });
+    });
+    // handle the sensor readings
+    function handle_sensor(topicArray, payload) {
+        switch (topicArray[3]) {
+          case "gauge":
+            // FLM gauges consist of timestamp, value, and unit
+            // gauge length 2 is sent from Arduino sensors (in my case):
+            // [<value:float>,"<unit>:string"]
+            switch (payload.length) {
+              case 2:
+                // enhance payload w/o timestamp by current timestamp
+                var now = parseInt(new Date().getTime() / 1e3);
+                payload.unshift(now);
+                break;
+            }
+            break;
 
-		default:
-			break;
-		}
-	}
+          default:
+            break;
+        }
+    }
 }
 
 // Serve the index.html page
 function httphandler(req, res) {
-	var uri = url.parse(req.url).pathname,
-	filename = path.join(process.cwd(), uri);
-	var contentTypesByExtension = {
-		".html" : "text/html",
-		".css" : "text/css",
-		".js" : "text/javascript"
-	};
-	// serve requested files
-	fs.exists(filename, function (exists) {
-		if (!exists) {
-			res.writeHead(404, {
-				"Content-Type" : "text/plain"
-			});
-			res.write("404 Not Found\n");
-			res.end();
-			return;
-		}
-		if (fs.statSync(filename).isDirectory())
-			filename += "/gauge.html";
-		fs.readFile(filename, "binary", function (err, file) {
-			if (err) {
-				res.writeHead(500, {
-					"Content-Type" : "text/plain"
-				});
-				res.write(err + "\n");
-				res.end();
-				return;
-			}
-			var headers = {};
-			var contentType = contentTypesByExtension[path.extname(filename)];
-			if (contentType)
-				headers["Content-Type"] = contentType;
-			res.writeHead(200, headers);
-			res.write(file, "binary");
-			res.end();
-		});
-	});
+    var uri = url.parse(req.url).pathname, filename = path.join(process.cwd(), uri);
+    var contentTypesByExtension = {
+        ".html": "text/html",
+        ".css": "text/css",
+        ".js": "text/javascript"
+    };
+    // serve requested files
+    fs.exists(filename, function(exists) {
+        if (!exists) {
+            res.writeHead(404, {
+                "Content-Type": "text/plain"
+            });
+            res.write("404 Not Found\n");
+            res.end();
+            return;
+        }
+        if (fs.statSync(filename).isDirectory()) filename += "/gauge.html";
+        fs.readFile(filename, "binary", function(err, file) {
+            if (err) {
+                res.writeHead(500, {
+                    "Content-Type": "text/plain"
+                });
+                res.write(err + "\n");
+                res.end();
+                return;
+            }
+            var headers = {};
+            var contentType = contentTypesByExtension[path.extname(filename)];
+            if (contentType) headers["Content-Type"] = contentType;
+            res.writeHead(200, headers);
+            res.write(file, "binary");
+            res.end();
+        });
+    });
 }
 
 mqttconnect();

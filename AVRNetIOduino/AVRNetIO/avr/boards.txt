@@ -4,12 +4,13 @@ AVRNetIO_32.name=AVRNetIO w/ ATmega32
 AVRNetIO_32.upload.protocol=stk500
 AVRNetIO_32.upload.maximum_size=30720
 AVRNetIO_32.upload.speed=19200
+AVRNetIO_32.upload.tool=arduino:avrdude
 
 AVRNetIO_32.bootloader.low_fuses=0xBF
 AVRNetIO_32.bootloader.high_fuses=0xC8
-AVRNetIO_32.bootloader.path=atmega
-AVRNetIO_32.bootloader.file=ATmegaBOOT_32.hex
+AVRNetIO_32.bootloader.file=atmega/ATmegaBOOT_32.hex
 AVRNetIO_32.bootloader.lock_bits=0xFF
+AVRNetIO_32.bootloader.tool=arduino:avrdude
 
 AVRNetIO_32.build.mcu=atmega32
 AVRNetIO_32.build.f_cpu=16000000L
@@ -22,14 +23,15 @@ AVRNetIO_644p.name=AVRNetIO w/ ATmega644P
 AVRNetIO_644p.upload.protocol=stk500
 AVRNetIO_644p.upload.maximum_size=63488
 AVRNetIO_644p.upload.speed=19200
+AVRNetIO_644p.upload.tool=arduino:avrdude
 
 AVRNetIO_644p.bootloader.low_fuses=0xFF
 AVRNetIO_644p.bootloader.high_fuses=0x9A
 AVRNetIO_644p.bootloader.extended_fuses=0xFF
-AVRNetIO_644p.bootloader.path=atmega
-AVRNetIO_644p.bootloader.file=ATmegaBOOT_644p.hex
+AVRNetIO_644p.bootloader.file=atmega/ATmegaBOOT_644p.hex
 AVRNetIO_644p.bootloader.unlock_bits=0x3F
 AVRNetIO_644p.bootloader.lock_bits=0x0F
+AVRNetIO_644p.bootloader.tool=arduino:avrdude
 
 AVRNetIO_644p.build.mcu=atmega644p
 AVRNetIO_644p.build.f_cpu=16000000L
@@ -42,14 +44,15 @@ AVRNetIO_644P3v3.name=AVRNetIO w/ ATmega644P@3.3V/6.25MHz from ENC28J60
 AVRNetIO_644P3v3.upload.protocol=stk500
 AVRNetIO_644P3v3.upload.maximum_size=63488
 AVRNetIO_644P3v3.upload.speed=19200
+AVRNetIO_644P3v3.upload.tool=arduino:avrdude
 
 AVRNetIO_644P3v3.bootloader.low_fuses=0xD0
 AVRNetIO_644P3v3.bootloader.high_fuses=0x9C
 AVRNetIO_644P3v3.bootloader.extended_fuses=0xFF
-AVRNetIO_644P3v3.bootloader.path=atmega
-AVRNetIO_644P3v3.bootloader.file=ATmegaBOOT_644p.hex
+AVRNetIO_644P3v3.bootloader.file=atmega/ATmegaBOOT_644p.hex
 AVRNetIO_644P3v3.bootloader.unlock_bits=0xFF
 AVRNetIO_644P3v3.bootloader.lock_bits=0xFF
+AVRNetIO_644P3v3.bootloader.tool=arduino:avrdude
 
 AVRNetIO_644P3v3.build.mcu=atmega644p
 AVRNetIO_644P3v3.build.f_cpu=6250000L

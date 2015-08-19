@@ -20,8 +20,7 @@ var mqtt = require("mqtt");
 var mqttclient;
 
 // specify your MQTT broker's data here
-var mqttbroker = "192.168.0.50", mqttport = "1883";
-
+// var mqttbroker = "192.168.0.50", mqttport = "1883";
 var http = require("http").createServer(httphandler).listen(httpport);
 
 var fs = require("fs");
@@ -32,10 +31,24 @@ var path = require("path");
 
 var io = require("socket.io")(http);
 
+// multicast DNS service discovery
+var mdns = require("mdns");
+
+// detect mqtt publishers and create corresponding servers
+var mdnsbrowser = mdns.createBrowser(mdns.tcp("mqtt"));
+
+mdnsbrowser.on("serviceUp", function(service) {
+    console.log("Detected MQTT service on: " + service.addresses[0] + ":" + service.port);
+    mqttconnect(service.addresses[0], service.port);
+});
+
+// start the mdns browser
+mdnsbrowser.start();
+
 // store detected sensors
 var sensors = {};
 
-function mqttconnect() {
+function mqttconnect(mqttbroker, mqttport) {
     // create the MQTT connection
     mqttclient = mqtt.connect({
         port: mqttport,
@@ -144,5 +157,3 @@ function httphandler(req, res) {
         });
     });
 }
-
-mqttconnect();

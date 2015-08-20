@@ -21,6 +21,8 @@ var mqttclient;
 
 // specify your MQTT broker's data here
 // var mqttbroker = "192.168.0.50", mqttport = "1883";
+
+// define the http server
 var http = require("http").createServer(httphandler).listen(httpport);
 
 var fs = require("fs");
@@ -42,12 +44,13 @@ mdnsbrowser.on("serviceUp", function(service) {
     mqttconnect(service.addresses[0], service.port);
 });
 
+// for manual broker definition, comment out the next line
+// mqttconnect(mqttbroker, mqttport);
+
 // start the mdns browser
 mdnsbrowser.start();
 
-// store detected sensors
-var sensors = {};
-
+// define what to do on connecting the mqtt broker
 function mqttconnect(mqttbroker, mqttport) {
     // create the MQTT connection
     mqttclient = mqtt.connect({

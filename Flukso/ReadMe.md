@@ -12,7 +12,7 @@ To do the same, perform following steps:
 	
 Copy the FLM's webserver content onto your desktop into a convenient folder, for example `/Users/<user>/Documents/Projects/FLMsandbox`.
 Also copy a simple nodejs-based webserver into the same directory, e.g. [simple_http_server.js](simple_http_server.js) - you may, of course, use another webserver able to serve the www/-contained index.html-file.
-Start the webserver having [nodejs](nodejs.org) installed.
+Start the webserver having [nodejs](http://nodejs.org) installed.
 
 	node simple_http_server.js &
 	
@@ -22,4 +22,6 @@ Note that partly in www/script/controller/-contained files the target address ma
 
 	var broker = '<FLM IP address>'; //location.host;
 	
-Otherwise the FLM-MQTT-broker is not reached; be aware to change it back when you want to tweak your FLM again.
+Otherwise the FLM-MQTT-broker is not reached; be aware to change it back when you want to tweak your FLM again; see for example [the line to tweak the gauge display](https://github.com/gebhardm/flmlocal/blob/master/www/scripts/controllers/gauge.js#L38); leave the port unchanged.
+
+<img src="run_FLM-UI_locally.png" width=500px>

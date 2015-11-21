@@ -1,0 +1,20 @@
+############################################################
+Gen6.name=Generation6 3D-Printer Driver Board
+
+Gen6.upload.protocol=stk500
+Gen6.upload.maximum_size=63488
+Gen6.upload.speed=19200
+Gen6.upload.tool=arduino:avrdude
+
+Gen6.bootloader.low_fuses=0xFF
+Gen6.bootloader.high_fuses=0x9A
+Gen6.bootloader.extended_fuses=0xFF
+Gen6.bootloader.file=atmega/ATmegaBOOT_644p.hex
+Gen6.bootloader.unlock_bits=0x3F
+Gen6.bootloader.lock_bits=0x0F
+Gen6.bootloader.tool=arduino:avrdude
+
+Gen6.build.mcu=atmega644p
+Gen6.build.f_cpu=16000000L
+Gen6.build.core=arduino
+Gen6.build.variant=atmega644p

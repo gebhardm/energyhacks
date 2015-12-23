@@ -40,28 +40,28 @@ Changelog
 
 // ATMEL ATMEGA644P
 //
-//								  +---\/---+					
-//	Ext7		T0		D0	PB0	1 |	       |40	PA0	AI0/D24	Eingang1/SubD10
-//	J11			T1		D1	PB1	2 |	       |39	PA1	AI1/D25	Eingang2/SubD11
-//	ENC-INT		INT2	D2	PB2	3 |        |38	PA2	AI2/D26	Eingang3/SubD12
-//	Ext8		PWM		D3	PB3	4 |	       |37	PA3	AI3/D27	Eingang4/SubD13
-//	ENC-SPI/ISP	PWM/SS	D4	PB4	5 |	       |36	PA4	AI4/D28	ADC1
-//	ENC-SPI/ISP	MOSI	D5	PB5	6 |	       |35	PA5	AI5/D29	ADC2
-//	ENC-SPI/ISP	MISO	D6	PB6	7 |	       |34	PA6	AI6/D30	ADC3
-//	ENC-SPI/ISP	SCK		D7	PB7	8 |	       |33	PA7	AI7/D31	ADC4
-//							RST	9 |	       |32	AREF			
-//							VCC	10|	       |31	GND			
-//							GND	11|	       |30	AVCC			
-//						  XTAL2 12|	       |29	PC7	D23		Ausgang8/SubD9
-//						  XTAL1	13|	       |28	PC6	D22		Ausgang7/SubD8
-//	MAX232-RX	RX0		D8	PD0	14|	       |27	PC5	D21	TDI	Ausgang6/SubD7
-//	MAX232-TX	TX0		D9	PD1	15|	       |26	PC4	D20	TDO	Ausgang5/SubD6
-//	Ext1	    INT0	D10	PD2	16|	       |25	PC3	D19	TMS	Ausgang4/SubD5
-//	Ext2	    INT1	D11	PD3	17|	       |24	PC2	D18	TCK	Ausgang3/SubD4
-//	Ext3	    PWM		D12	PD4	18|	       |23	PC1	D17	SDA	Ausgang2/SubD3
-//	Ext4	    PWM		D13	PD5	19|	       |22	PC0	D16	SCL	Ausgang1/SubD2
-//	Ext5	    PWM		D14	PD6	20|	       |21	PD7	D15	PWM	Ext6
-//                                +--------+
+//						  +---\/---+					
+//	Ext7		T0	D0	PB0	1 |        |40	PA0	AI0/D24		Eingang1/SubD10
+//	J11		T1	D1	PB1	2 |        |39	PA1	AI1/D25		Eingang2/SubD11
+//	ENC-INT		INT2	D2	PB2	3 |        |38	PA2	AI2/D26		Eingang3/SubD12
+//	Ext8		PWM	D3	PB3	4 |        |37	PA3	AI3/D27		Eingang4/SubD13
+//	ENC-SPI/ISP	PWM/SS	D4	PB4	5 |        |36	PA4	AI4/D28		ADC1
+//	ENC-SPI/ISP	MOSI	D5	PB5	6 |        |35	PA5	AI5/D29		ADC2
+//	ENC-SPI/ISP	MISO	D6	PB6	7 |        |34	PA6	AI6/D30		ADC3
+//	ENC-SPI/ISP	SCK	D7	PB7	8 |        |33	PA7	AI7/D31		ADC4
+//					RST	9 |        |32	AREF			
+//					VCC	10|        |31	GND			
+//					GND	11|        |30	AVCC			
+//					XTAL2 	12|        |29	PC7	D23		Ausgang8/SubD9
+//					XTAL1	13|        |28	PC6	D22		Ausgang7/SubD8
+//	MAX232-RX	RX0	D8	PD0	14|        |27	PC5	D21	TDI	Ausgang6/SubD7
+//	MAX232-TX	TX0	D9	PD1	15|        |26	PC4	D20	TDO	Ausgang5/SubD6
+//	Ext1		INT0	D10	PD2	16|        |25	PC3	D19	TMS	Ausgang4/SubD5
+//	Ext2		INT1	D11	PD3	17|        |24	PC2	D18	TCK	Ausgang3/SubD4
+//	Ext3		PWM	D12	PD4	18|        |23	PC1	D17	SDA	Ausgang2/SubD3
+//	Ext4		PWM	D13	PD5	19|        |22	PC0	D16	SCL	Ausgang1/SubD2
+//	Ext5		PWM	D14	PD6	20|        |21	PD7	D15	PWM	Ext6
+//						  +--------+
 
 #define NOT_A_PIN 0
 #define NOT_A_PORT 0

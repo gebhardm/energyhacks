@@ -14,6 +14,7 @@ AVRNetIO_32.bootloader.tool=arduino:avrdude
 
 AVRNetIO_32.build.mcu=atmega32
 AVRNetIO_32.build.f_cpu=16000000L
+AVRNetIO_32.build.board=AVR_AVRNETIO_32
 AVRNetIO_32.build.core=arduino
 AVRNetIO_32.build.variant=atmega32
 
@@ -35,6 +36,7 @@ AVRNetIO_644p.bootloader.tool=arduino:avrdude
 
 AVRNetIO_644p.build.mcu=atmega644p
 AVRNetIO_644p.build.f_cpu=16000000L
+AVRNetIO_644p.build.board=AVR_AVRNETIO_644P
 AVRNetIO_644p.build.core=arduino
 AVRNetIO_644p.build.variant=atmega644p
 
@@ -56,5 +58,6 @@ AVRNetIO_644P3v3.bootloader.tool=arduino:avrdude
 
 AVRNetIO_644P3v3.build.mcu=atmega644p
 AVRNetIO_644P3v3.build.f_cpu=6250000L
+AVRNetIO_644P3v3.build.board=AVR_AVRNETIO_644P3V3
 AVRNetIO_644P3v3.build.core=arduino
 AVRNetIO_644P3v3.build.variant=atmega644p

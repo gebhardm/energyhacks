@@ -44,6 +44,14 @@ mdnsbrowser.on("serviceUp", function(service) {
     mqttconnect(service.addresses[0], service.port);
 });
 
+mdnsbrowser.on("serviceDown", function(service) {
+    console.log("MQTT service down: ", service);
+});
+
+mdnsbrowser.on("error", function(exception) {
+    console.log("An error occured: ", exception);
+});
+
 // for manual broker definition, comment out the next line
 // mqttconnect(mqttbroker, mqttport);
 

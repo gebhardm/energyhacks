@@ -20,7 +20,38 @@ var mqtt = require("mqtt");
 var mqttclient;
 
 // specify your MQTT broker's data here
-var mqttbroker = "192.168.0.50", mqttport = "1883";
+// var mqttbroker = "192.168.0.50", mqttport = "1883";
+// detect mqtt server via mdns
+var mdns = require("mdns");
+
+// resolution requence added due to mdns issue - see https://github.com/agnat/node_mdns/issues/130
+var sequence = [ mdns.rst.DNSServiceResolve(), "DNSServiceGetAddrInfo" in mdns.dns_sd ? mdns.rst.DNSServiceGetAddrInfo() : mdns.rst.getaddrinfo({
+    families: [ 4 ]
+}), mdns.rst.makeAddressesUnique() ];
+
+// detect mqtt publishers and create corresponding servers
+var mdnsbrowser = mdns.createBrowser(mdns.tcp("mqtt"), {
+    resolverSequence: sequence
+});
+
+// handle detected devices
+mdnsbrowser.on("serviceUp", function(service) {
+    console.log("Detected MQTT service on: " + service.addresses[0] + ":" + service.port);
+    mqttconnect(service.addresses[0], service.port);
+});
+
+// handle if mdns service goes offline
+mdnsbrowser.on("serviceDown", function(service) {
+    console.log("MDNS service went down: ", service);
+});
+
+// handle if mdns throws an error
+mdnsbrowser.on("error", function(exception) {
+    console.log("MDNS service threw an error: ", exception);
+});
+
+// start the mdns browser
+mdnsbrowser.start();
 
 var http = require("http").createServer(httphandler).listen(httpport);
 
@@ -35,7 +66,7 @@ var io = require("socket.io")(http);
 // store detected sensors
 var sensors = {};
 
-function mqttconnect() {
+function mqttconnect(mqttbroker, mqttport) {
     // create the MQTT connection
     mqttclient = mqtt.connect({
         port: mqttport,
@@ -144,5 +175,3 @@ function httphandler(req, res) {
         });
     });
 }
-
-mqttconnect();

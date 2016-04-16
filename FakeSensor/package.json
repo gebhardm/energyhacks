@@ -1,0 +1,28 @@
+{
+  "name": "fakesensor",
+  "version": "1.0.0",
+  "description": "A fake MQTT sensor publishing some values",
+  "main": "fakesensor.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gebhardm/energyhacks.git"
+  },
+  "keywords": [
+    "MQTT",
+    "sensor",
+    "publisher"
+  ],
+  "author": "Markus Gebhard, Karlsruhe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gebhardm/energyhacks/issues"
+  },
+  "homepage": "https://github.com/gebhardm/energyhacks#readme",
+  "dependencies": {
+    "mdns": "^2.3.1",
+    "mqtt": "^1.8.0"
+  }
+}

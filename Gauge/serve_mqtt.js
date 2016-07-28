@@ -2,7 +2,7 @@
  * This is script to serve a gauge display on received MQTT messages
  * topic: /sensor/<sensor_id>/gauge
  * payload: [<timestamp>, <value>, <unit>]
- * Markus Gebhard, Karlsruhe, 2015
+ * Markus Gebhard, Karlsruhe, 2015-2016
  *
  * Released under the MIT license. See LICENSE file for details.
  *
@@ -16,8 +16,6 @@ var httpport = 1080;
 
 // use mqtt for client, socket.io for push,
 var mqtt = require("mqtt");
-
-var mqttclient;
 
 // specify your MQTT broker's data here
 // var mqttbroker = "192.168.0.50", mqttport = "1883";
@@ -67,6 +65,7 @@ mdnsbrowser.start();
 
 // define what to do on connecting the mqtt broker
 function mqttconnect(mqttbroker, mqttport) {
+    var mqttclient;
     // create the MQTT connection
     mqttclient = mqtt.connect({
         port: mqttport,

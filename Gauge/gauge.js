@@ -68,7 +68,7 @@ socket.on("connect", function() {
         } else sensor = sensors[sensorId];
         // reset the name, if possible
         if (sensor.name == sensorId && flx != undefined && sensor.port != undefined) {
-            sensor.name = flx[sensor.port].name + ' ' + sensor.subtype;
+            sensor.name = flx[sensor.port].name + " " + sensor.subtype;
         }
         // now compute the gauge
         switch (msgType) {
@@ -114,10 +114,12 @@ socket.on("connect", function() {
                     $("#gauge").append(tabrow);
                 }
                 $("#gc" + numGauges).append(tabcell);
-                var limit = 0, decimals = 0;
-                if (sensor.unit == "W") limit = 250; else if (sensor.unit == "°C") {
+                var limit = 0, decimals = 2;
+                if (sensor.unit == "W") {
+                    limit = 250;
+                    decimals = 0;
+                } else if (sensor.unit == "°C") {
                     limit = 50;
-                    decimals = 2;
                 } else limit = 100;
                 limit = sensor.value > limit ? sensor.value : limit;
                 sensor.display = new JustGage({

@@ -5,7 +5,15 @@ var ctx = document.getElementById("graph").getContext("2d");
 var myChart;
 
 var options = {
-    responsive: true
+    responsive: true,
+    scales: {
+        yAxes: [ {
+            ticks: {
+                min: -2000,
+                max: 2000
+            }
+        } ]
+    }
 };
 
 socket.on("connect", function() {

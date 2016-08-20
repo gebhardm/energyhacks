@@ -1,0 +1,29 @@
+{
+  "name": "mqttrealtime",
+  "version": "0.0.1",
+  "description": "A realtime graph for MQTT readings",
+  "main": "mqttrealtime.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gebhardm/energyhacks.git"
+  },
+  "keywords": [
+    "mqtt",
+    "realtime",
+    "graph"
+  ],
+  "author": "Markus Gebhard, Karlsruhe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gebhardm/energyhacks/issues"
+  },
+  "homepage": "https://github.com/gebhardm/energyhacks#readme",
+  "dependencies": {
+    "chart.js": "^2.2.1",
+    "mqtt": "^1.14.0",
+    "socket.io": "^1.4.8"
+  }
+}

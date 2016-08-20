@@ -12,6 +12,7 @@ default/
 node_modules/*
 Gauge/node_modules/*
 Graph/node_modules/*
+MQTTrealtime/node_modules/*
 Flukso/persist/node_modules/*
 Flukso/tmpo/node_modules/*
 

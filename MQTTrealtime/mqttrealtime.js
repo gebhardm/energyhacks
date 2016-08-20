@@ -36,15 +36,13 @@ var path = require("path");
 
 var io = require("socket.io")(http);
 
-// handle socketio requests
+// pass mqtt messages to connected websocket
 io.on("connection", function(socket) {
     console.log("WebSocket connected");
-});
-
-// pass mqtt messages to connected websocket
-io.on("connect", function(socket) {
     mqttclient.on("message", function(topic, message) {
-        var payload;
+        var payload, phase, topicArray;
+        topicArray = topic.split("/");
+        phase = topicArray[topicArray.length - 1];
         payload = message.toString();
         try {
             payload = JSON.parse(payload);
@@ -57,9 +55,9 @@ io.on("connect", function(socket) {
             for (var val in series) series[val] = series[val] / 1e3;
             payload[2] = "V";
         }
-        socket.emit("mqtt", {
-            topic: topic,
-            message: payload
+        socket.emit("load", {
+            phase: phase,
+            data: payload[1]
         });
     });
 });

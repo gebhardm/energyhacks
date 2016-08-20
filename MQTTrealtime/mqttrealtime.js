@@ -66,8 +66,8 @@ io.on("connect", function(socket) {
 
 // check MQTT connection
 mqttclient.on("connect", function() {
-    mqttclient.subscribe("/device/+/flx/voltage/+");
-    //mqttclient.subscribe("/device/+/flx/current/+");
+    //mqttclient.subscribe("/device/+/flx/voltage/+");
+    mqttclient.subscribe("/device/+/flx/current/+");
     console.log("Connected: ", mqttbroker, ":", mqttport);
 });
 

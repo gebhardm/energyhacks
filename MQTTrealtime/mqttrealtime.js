@@ -39,27 +39,6 @@ var io = require("socket.io")(http);
 // pass mqtt messages to connected websocket
 io.on("connection", function(socket) {
     console.log("WebSocket connected");
-    mqttclient.on("message", function(topic, message) {
-        var payload, phase, topicArray;
-        topicArray = topic.split("/");
-        phase = topicArray[topicArray.length - 1];
-        payload = message.toString();
-        try {
-            payload = JSON.parse(payload);
-        } catch (error) {
-            console.log("Error parsing JSON");
-            return;
-        }
-        if (payload[2] === "mV") {
-            var series = payload[1];
-            for (var val in series) series[val] = series[val] / 1e3;
-            payload[2] = "V";
-        }
-        socket.emit("load", {
-            phase: phase,
-            data: payload[1]
-        });
-    });
 });
 
 // check MQTT connection
@@ -72,6 +51,28 @@ mqttclient.on("connect", function() {
 // log error from MQTT client
 mqttclient.on("error", function() {
     console.log("The MQTT client raised an error ...");
+});
+
+mqttclient.on("message", function(topic, message) {
+    var payload, phase, topicArray;
+    topicArray = topic.split("/");
+    phase = topicArray[topicArray.length - 1];
+    payload = message.toString();
+    try {
+        payload = JSON.parse(payload);
+    } catch (error) {
+        console.log("Error parsing JSON");
+        return;
+    }
+    if (payload[2] === "mV") {
+        var series = payload[1];
+        for (var val in series) series[val] = series[val] / 1e3;
+        payload[2] = "V";
+    }
+    io.sockets.emit("load", {
+        phase: phase,
+        data: payload[1]
+    });
 });
 
 // Serve the index.html page

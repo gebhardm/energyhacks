@@ -2,17 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="MQTT realtime graph display">
     <title>MQTT Realtime Graph</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
     <!-- socket.io for communication -->
     <script type="text/javascript" src="js/socket.io.js"></script>
     <!-- chart.js for charting -->
     <script type="text/javascript" src="js/Chart.min.js"></script>
   </head>
   <body>
-    <div align="center">
-    <canvas id="graph" width="100" height="100"></canvas>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-8">
+          <canvas id="graph" width="100" height="100"></canvas>
+        </div>
+      </div>
     </div>
     <!-- this page's functionality -->
     <script type="text/javascript" src="index.js"></script>

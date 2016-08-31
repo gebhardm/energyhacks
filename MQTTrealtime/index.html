@@ -13,6 +13,20 @@
   </head>
   <body>
     <div class="container-fluid">
+      <div class="radio">
+        <label>
+          <input type="radio" name="sel" value="C" onclick="handleSel(this)" checked> 
+        Current
+        </label>
+      </div>
+      <div class="radio">
+        <label>
+          <input type="radio" name="sel" value="V" onclick="handleSel(this)"> 
+        Voltage
+        </label>
+      </div>
+    </div>
+    <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-sm-6 col-md-8">
           <canvas id="graph" width="100" height="100"></canvas>

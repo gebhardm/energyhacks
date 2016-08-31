@@ -8,10 +8,7 @@ var options = {
     responsive: true,
     scales: {
         yAxes: [ {
-            ticks: {
-                //min: -2000,
-                //max: 2000
-            }
+            ticks: {}
         } ]
     }
 };
@@ -44,8 +41,12 @@ socket.on("connect", function() {
                 options: options
             });
         } else {
-            myChart.data.datasets[msg.phase-1].data = msg.data;
+            myChart.data.datasets[msg.phase - 1].data = msg.data;
             myChart.update();
         }
     });
 });
+
+function handleSel(opt) {
+    socket.emit("subscribe", opt.value);
+}

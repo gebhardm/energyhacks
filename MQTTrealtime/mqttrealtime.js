@@ -26,6 +26,8 @@ var mqttclient = mqtt.connect({
     port: mqttport
 });
 
+var subscription = "/device/+/flx/current/+";
+
 var http = require("http").createServer(httphandler).listen(httpport);
 
 var fs = require("fs");
@@ -39,12 +41,31 @@ var io = require("socket.io")(http);
 // pass mqtt messages to connected websocket
 io.on("connection", function(socket) {
     console.log("WebSocket connected");
+    // handle request for subscription
+    socket.on("subscribe", function(val) {
+        var cur = "/device/+/flx/current/+";
+        var vol = "/device/+/flx/voltage/+";
+        var subscribe;
+        switch (val) {
+          case "C":
+            subscribe = cur;
+            break;
+
+          case "V":
+            subscribe = vol;
+            break;
+        }
+        if (subscription !== subscribe) {
+            mqttclient.unsubscribe(subscription);
+            mqttclient.subscribe(subscribe);
+            subscription = subscribe;
+        }
+    });
 });
 
 // check MQTT connection
 mqttclient.on("connect", function() {
-    //mqttclient.subscribe("/device/+/flx/voltage/+");
-    mqttclient.subscribe("/device/+/flx/current/+");
+    mqttclient.subscribe(subscription);
     console.log("Connected: ", mqttbroker, ":", mqttport);
 });
 
@@ -64,11 +85,13 @@ mqttclient.on("message", function(topic, message) {
         console.log("Error parsing JSON");
         return;
     }
+/*
     if (payload[2] === "mV") {
         var series = payload[1];
         for (var val in series) series[val] = series[val] / 1e3;
         payload[2] = "V";
     }
+*/
     io.sockets.emit("load", {
         phase: phase,
         data: payload[1]

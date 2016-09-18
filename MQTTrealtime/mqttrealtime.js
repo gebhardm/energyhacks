@@ -54,6 +54,8 @@ io.on("connection", function(socket) {
           case "V":
             subscribe = vol;
             break;
+          default:
+            subscribe = val;
         }
         if (subscription !== subscribe) {
             mqttclient.unsubscribe(subscription);
@@ -85,14 +87,13 @@ mqttclient.on("message", function(topic, message) {
         console.log("Error parsing JSON");
         return;
     }
-/*
     if (payload[2] === "mV") {
         var series = payload[1];
         for (var val in series) series[val] = series[val] / 1e3;
         payload[2] = "V";
     }
-*/
     io.sockets.emit("load", {
+        topic: topic,
         phase: phase,
         data: payload[1]
     });

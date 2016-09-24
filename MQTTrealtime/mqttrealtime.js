@@ -26,7 +26,7 @@ var mqttclient = mqtt.connect({
     port: mqttport
 });
 
-var subscription = "/device/+/flx/current/+";
+var subscription;
 
 var http = require("http").createServer(httphandler).listen(httpport);
 
@@ -54,6 +54,7 @@ io.on("connection", function(socket) {
           case "V":
             subscribe = vol;
             break;
+
           default:
             subscribe = val;
         }
@@ -62,12 +63,17 @@ io.on("connection", function(socket) {
             mqttclient.subscribe(subscribe);
             subscription = subscribe;
         }
+        console.log("Subscribed to " + subscribe);
+    });
+    // unsubscribe MQTT on socket disconnect
+    socket.on("disconnect", function() {
+        mqttclient.unsubscribe(subscription);
+        console.log("Websocket disconnected");
     });
 });
 
 // check MQTT connection
 mqttclient.on("connect", function() {
-    mqttclient.subscribe(subscription);
     console.log("Connected: ", mqttbroker, ":", mqttport);
 });
 

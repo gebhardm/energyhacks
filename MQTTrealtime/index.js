@@ -16,6 +16,7 @@ var options = {
 };
 
 socket.on("connect", function() {
+    // handle received payloads
     socket.on("load", function(msg) {
         var idx;
         var label = "L" + msg.phase;
@@ -39,6 +40,8 @@ socket.on("connect", function() {
         }
         drawChart();
     });
+    // initial subscription
+    socket.emit("subscribe", "C");
 });
 
 function drawChart() {

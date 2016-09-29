@@ -1,5 +1,8 @@
 var socket = io.connect(location.host);
 
+// initial subscription
+socket.emit("subscribe", "C");
+
 var ctx = document.getElementById("graph").getContext("2d");
 
 var myChart;
@@ -40,14 +43,15 @@ socket.on("connect", function() {
         }
         drawChart();
     });
-    // initial subscription
-    socket.emit("subscribe", "C");
 });
 
 function drawChart() {
     if (myChart === undefined) {
+        var data;
+        var labels = [];
+        for (var i = 0; i < 32; i++) labels.push(i);
         data = {
-            labels: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 ],
+            labels: labels,
             datasets: datasets
         };
         myChart = new Chart(ctx, {

@@ -1,8 +1,5 @@
 var socket = io.connect(location.host);
 
-// initial subscription
-socket.emit("subscribe", "C");
-
 var ctx = document.getElementById("graph").getContext("2d");
 
 var myChart;
@@ -43,6 +40,8 @@ socket.on("connect", function() {
         }
         drawChart();
     });
+    // initial subscription
+    socket.emit("subscribe", "C");
 });
 
 function drawChart() {

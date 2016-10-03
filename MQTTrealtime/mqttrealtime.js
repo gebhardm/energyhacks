@@ -38,37 +38,21 @@ var path = require("path");
 
 var io = require("socket.io")(http);
 
+var websocket;
+
 // pass mqtt messages to connected websocket
-io.on("connection", function(socket) {
-    console.log("WebSocket connected");
+io.on("connect", function(socket) {
+    websocket = socket;
+    console.log("WebSocket connected", websocket.id);
     // handle request for subscription
     socket.on("subscribe", function(val) {
-        var cur = "/device/+/flx/current/+";
-        var vol = "/device/+/flx/voltage/+";
-        var subscribe;
-        switch (val) {
-          case "C":
-            subscribe = cur;
-            break;
-
-          case "V":
-            subscribe = vol;
-            break;
-
-          default:
-            subscribe = val;
-        }
-        if (subscription !== subscribe) {
-            mqttclient.unsubscribe(subscription);
-            mqttclient.subscribe(subscribe);
-            subscription = subscribe;
-        }
-        console.log("Subscribed to " + subscribe);
+        handleSubscription(val);
     });
     // unsubscribe MQTT on socket disconnect
     socket.on("disconnect", function() {
-        mqttclient.unsubscribe(subscription);
+        if (subscription !== undefined) mqttclient.unsubscribe(subscription);
         console.log("Websocket disconnected");
+        websocket = undefined;
     });
 });
 
@@ -78,8 +62,8 @@ mqttclient.on("connect", function() {
 });
 
 // log error from MQTT client
-mqttclient.on("error", function() {
-    console.log("The MQTT client raised an error ...");
+mqttclient.on("error", function(err) {
+    console.log("The MQTT client raised an error ...", err);
 });
 
 mqttclient.on("message", function(topic, message) {
@@ -98,11 +82,13 @@ mqttclient.on("message", function(topic, message) {
         for (var val in series) series[val] = series[val] / 1e3;
         payload[2] = "V";
     }
-    io.sockets.emit("load", {
-        topic: topic,
-        phase: phase,
-        data: payload[1]
-    });
+    if (websocket !== undefined) {
+        websocket.emit("load", {
+            topic: topic,
+            phase: phase,
+            data: payload[1]
+        });
+    }
 });
 
 // Serve the index.html page
@@ -141,4 +127,29 @@ function httphandler(req, res) {
             res.end();
         });
     });
+}
+
+// subscription handling
+function handleSubscription(val) {
+    var cur = "/device/+/flx/current/+";
+    var vol = "/device/+/flx/voltage/+";
+    var subscribe;
+    switch (val) {
+      case "C":
+        subscribe = cur;
+        break;
+
+      case "V":
+        subscribe = vol;
+        break;
+
+      default:
+        subscribe = val;
+    }
+    if (subscription !== subscribe) {
+        if (subscription !== undefined) mqttclient.unsubscribe(subscription);
+        mqttclient.subscribe(subscribe);
+        subscription = subscribe;
+    }
+    console.log("Subscribed to " + subscribe);
 }

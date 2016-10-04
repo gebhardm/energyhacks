@@ -5,7 +5,6 @@
 
 #define ledPin 1
 #define AVG 50
-#define DIVIDER 1
 
 //Global variables for Interrupt computation
 unsigned long sum = 0, Hz = 0, last = 0;
@@ -17,7 +16,8 @@ char payload[60];
 byte mac[]    = { 
   0x00, 0x22, 0xF9, 0x01, 0x02, 0x03 };
 // Provide here the MQTT broker's IP address the Arduino shall conntect to
-unint8_t broker[] = { 192, 168, 0, 50 };
+uint8_t broker[] = { 
+  192, 168, 0, 50 };
 uint16_t port = 1883;  
 
 // define callback routine
@@ -83,11 +83,11 @@ void loop()
   client.loop();
   if (client.connected()) {
     // publish the detected net frequency; no detection on publishing
-	cli;
-	sum = 0;
-	cnt = 0;
+    cli();
+    sum = 0;
+    cnt = 0;
     client.publish("/sensor/NetFrequency/gauge",createPayload(Hz,"Hz",3));
-	sei;
+    sei();
   }
   else {
     client.connect("arduino");
@@ -110,3 +110,4 @@ void interrupt( void )
   }
   last = usec;
 }
+

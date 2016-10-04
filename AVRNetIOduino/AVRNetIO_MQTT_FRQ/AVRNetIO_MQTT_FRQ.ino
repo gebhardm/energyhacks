@@ -4,6 +4,7 @@
 #include <PubSubClient.h>  // https://github.com/knolleary/pubsubclient
 
 #define ledPin 1
+#define acPin 10
 #define AVG 50
 
 //Global variables for Interrupt computation
@@ -31,16 +32,26 @@ void callback(char* topic, byte* payload, unsigned int length) {
 EthernetClient ethClient;
 PubSubClient client(broker, port, callback, ethClient);
 
+// flash the LED to display a condition
+void flashLED( void ) {
+  digitalWrite(ledPin, LOW);
+  delay(100);
+  digitalWrite(ledPin, HIGH);
+}
+
 void setup()
 {
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, HIGH);
+  pinMode(acPin, INPUT);
+  digitalWrite(acPin, HIGH);
   //  initialize ethernet controller by DHCP
   if(Ethernet.begin(mac) == 0) {
     // something went wrong
     while(true)
     { 
       for (int i=0;i<3;i++){
-        if (digitalRead(ledPin) == LOW) digitalWrite(ledPin, HIGH);
-        else digitalWrite(ledPin, LOW);
+        flashLED();
       };
       delay(300);
     }
@@ -49,6 +60,7 @@ void setup()
     IPAddress myip = Ethernet.localIP();
   };
   // attach INT0 to the net frequency detection routine
+
   attachInterrupt(0, interrupt, FALLING);
 }
 
@@ -86,13 +98,15 @@ void loop()
     cli();
     sum = 0;
     cnt = 0;
+    last = 0; 
     client.publish("/sensor/NetFrequency/gauge",createPayload(Hz,"Hz",3));
+    flashLED();
     sei();
   }
   else {
     client.connect("arduino");
   }
-  delay(1000);
+  delay(5000);
 }
 
 void interrupt( void )
@@ -100,7 +114,7 @@ void interrupt( void )
 {
   unsigned long usec = micros(); 
   unsigned long diff = usec - last;
-  sum += diff;
+  if (last > 0) sum += diff;
   cnt++;
   if (cnt == AVG) {
     sum /= AVG;
@@ -110,4 +124,7 @@ void interrupt( void )
   }
   last = usec;
 }
+
+
+
 

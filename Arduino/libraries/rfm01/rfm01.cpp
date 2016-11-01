@@ -4,6 +4,7 @@ uint8_t _pinNIRQ;
 uint8_t _pinSel;
 
 volatile int rxFlag = LOW;  // interrupt indicator
+int cntRec = 0; // counter of received bytes
 
 // interrupt handler
 void nIRQISR();
@@ -43,13 +44,29 @@ void RFM01::begin()
 uint8_t RFM01::receive(uint8_t *rxData, uint16_t *rxStatus, uint8_t msgLen)
 {
     uint8_t rec, hStatus, lStatus;
+    uint8_t msgOK = 0; // keep 0 until message length is reached
     if (rxFlag) {
+        // the receive sequence
         digitalWrite(_pinSel, LOW);
         hStatus = SPI.transfer(0x00); // send status read command
         lStatus = SPI.transfer(0x00);
         rec = SPI.transfer(0x00);
+        rxData[cntRec] = rec;
+        digitalWrite(_pinSel, HIGH);
+        // store the status
+        rxStatus[cntRec] = ((uint8_t) hStatus<<8) + lStatus;
+        cntRec++;
+        // wait for next received message
         rxFlag = LOW;
     }
+    // transfer the received message
+    if(cntRec==msgLen){
+        writeCtrlWord(0xCE88); // FiFo ??
+        writeCtrlWord(0xCE8B); // FiFo ??
+        msgOK = 1;
+        cntRec = 0;
+    }
+    return msgOK;
 }
 
 // the receive interrupt handler

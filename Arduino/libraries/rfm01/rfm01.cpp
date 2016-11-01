@@ -5,6 +5,9 @@ uint8_t _pinSel;
 
 volatile int rxFlag = LOW;  // interrupt indicator
 
+// interrupt handler
+void nIRQISR();
+
 // constructor
 RFM01::RFM01()
 {
@@ -12,7 +15,7 @@ RFM01::RFM01()
 }
 
 // parameterized constructor
-RFM01::RFM01(pin_CS, pin_nIRQ)
+RFM01::RFM01(uint8_t pin_CS, uint8_t pin_nIRQ)
 {
     _pinNIRQ = pin_nIRQ;
     _pinSel = pin_CS;
@@ -21,7 +24,7 @@ RFM01::RFM01(pin_CS, pin_nIRQ)
 // the public initialization routine
 void RFM01::begin()
 {
-    digitalWrite(_pinSel. HIGH);
+    digitalWrite(_pinSel, HIGH);
     pinMode(_pinSel, OUTPUT);
     pinMode(_pinNIRQ, INPUT_PULLUP);
     
@@ -50,7 +53,7 @@ uint8_t RFM01::receive(uint8_t *rxData, uint16_t *rxStatus, uint8_t msgLen)
 }
 
 // the receive interrupt handler
-void RFM01::nIRQISR()
+void nIRQISR()
 {
     rxFlag = HIGH;
 }

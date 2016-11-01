@@ -60,8 +60,6 @@ private:
     void initDevice();
     void writeCtrlBytes(uint8_t highByte, uint8_t lowByte);
     void writeCtrlWord(uint16_t cmdWord);
-    // receive interrupt handler
-    void nIRQISR();
-}
+};
 
 #endif

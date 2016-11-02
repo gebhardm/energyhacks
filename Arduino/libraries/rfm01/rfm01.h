@@ -56,9 +56,8 @@ public:
     // receive byte array
     uint8_t receive(uint8_t *rxData, uint16_t *rxStatus, uint8_t msgLen);
 private:
-    // write RFM01 control commands
+    // initialize module and write RFM01 control commands
     void initDevice();
-    void writeCtrlBytes(uint8_t highByte, uint8_t lowByte);
     void writeCtrlWord(uint16_t cmdWord);
 };
 

@@ -43,18 +43,19 @@ void RFM01::begin()
 // the receive routine
 uint8_t RFM01::receive(uint8_t *rxData, uint16_t *rxStatus, uint8_t msgLen)
 {
-    uint8_t rec, hStatus, lStatus;
+    uint16_t status;
+    uint8_t  rec;
     uint8_t msgOK = 0; // keep 0 until message length is reached
     if (rxFlag) {
         // the receive sequence
         digitalWrite(_pinSel, LOW);
-        hStatus = SPI.transfer(0x00); // send status read command
-        lStatus = SPI.transfer(0x00);
-        rec = SPI.transfer(0x00);
-        rxData[cntRec] = rec;
+        status = SPI.transfer16(0x0000); // send status read command
+        rec    = SPI.transfer(0x00);     // now read from the FiFo buffer
         digitalWrite(_pinSel, HIGH);
+        // store the received byte
+        rxData[cntRec] = rec;
         // store the status
-        rxStatus[cntRec] = ((uint8_t) hStatus<<8) + lStatus;
+        rxStatus[cntRec] = status;
         cntRec++;
         // wait for next received message
         rxFlag = LOW;
@@ -78,8 +79,11 @@ void nIRQISR()
 // initialize the RFM01(S) module
 void RFM01::initDevice()
 {
+    uint16_t status;
     // control sequence as presented in the Pollin datasheet for the RFM01 receiver
-    writeCtrlWord(0x0000);
+    digitalWrite(_pinSel, LOW);
+    status = SPI.transfer16(0x0000);  // send read status and receive this
+    digitalWrite(_pinSel, HIGH);
     writeCtrlWord(0x893A); // configuration setting 433MHz, bandwidth 134kHz
     writeCtrlWord(0xA640); // frequency setting 434MHz
     writeCtrlWord(0xC847); // data rate 4.8kbps
@@ -92,22 +96,10 @@ void RFM01::initDevice()
     writeCtrlWord(0xC081); // receiver setting: enable
 }
 
-// write a control word as bytes
-void RFM01::writeCtrlBytes(uint8_t highByte, uint8_t lowByte)
-{
-    digitalWrite(_pinSel, LOW);
-    SPI.transfer(highByte);
-    SPI.transfer(lowByte);
-    digitalWrite(_pinSel, HIGH);
-}
-
 // write control word
 void RFM01::writeCtrlWord(uint16_t cmdWord)
 {
-    uint8_t h = cmdWord >> 8;
-    uint8_t l = cmdWord;
     digitalWrite(_pinSel, LOW);
-    SPI.transfer(h);
-    SPI.transfer(l);
+    SPI.transfer16(cmdWord);
     digitalWrite(_pinSel, HIGH);
 }

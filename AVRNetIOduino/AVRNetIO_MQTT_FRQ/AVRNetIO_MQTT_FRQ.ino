@@ -1,15 +1,28 @@
 /* AVRNetIO using MQTT to post frequency readings to an MQTT broker */
+/* code is for ATmega32 at 16MHz */
 #include <SPI.h>
 #include <UIPEthernet.h>  // https://github.com/ntruchsess/arduino_uip
 #include <PubSubClient.h>  // https://github.com/knolleary/pubsubclient
 
-#define ledPin 1
-#define acPin 10
-#define AVG 50
+#define ledPin 1      // signal LED
+#define acPin 10      // AC input via 10k resistor
+#define sparePin 11   // a pin set to low to shield the AC signal
+#define NET 50        // mains frequency
+#define DIVIDER 8     // Prescaler for Timer
+#define NETCNT (unsigned int) (F_CPU / DIVIDER / NET) // @16MHz: 40.000 ticks/period
 
-//Global variables for Interrupt computation
-unsigned long sum = 0, Hz = 0, last = 0;
-byte cnt = 0;
+// the actual capture routines
+void setInterrupt0();
+void setTimer1();
+void startCapture();
+unsigned char getState();
+unsigned long getCapture();
+
+// frequency detection variables
+volatile unsigned long sum = 0;
+volatile unsigned char cnt = 0;
+
+//Global variables for communication
 char payload[60];
 
 // The AVRNetIO's MAC as provided by Pollin
@@ -19,13 +32,13 @@ byte mac[]    = {
 // Provide here the MQTT broker's IP address the Arduino shall conntect to
 uint8_t broker[] = { 
   192, 168, 0, 50 };
-uint16_t port = 1883;  
+uint16_t port = 1883;
+
+IPAddress myip;
 
 // define callback routine
 void callback(char* topic, byte* payload, unsigned int length) {
-  if (length>0) {
-    // do something with the payload - unused here... 
-  }
+  // do something with the payload - unused here... 
 }
 
 // now initialize the network connection and MQTT broker access
@@ -35,33 +48,60 @@ PubSubClient client(broker, port, callback, ethClient);
 // flash the LED to display a condition
 void flashLED( void ) {
   digitalWrite(ledPin, LOW);
-  delay(100);
+  for(int i=0;i<1000;i++);
   digitalWrite(ledPin, HIGH);
+}
+
+void toggleLED( void ) {
+  digitalWrite(ledPin, !digitalRead(ledPin));
 }
 
 void setup()
 {
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, HIGH);
-  pinMode(acPin, INPUT);
-  digitalWrite(acPin, HIGH);
   //  initialize ethernet controller by DHCP
-  if(Ethernet.begin(mac) == 0) {
+  if(!Ethernet.begin(mac)) {
     // something went wrong
     while(true)
     { 
-      for (int i=0;i<3;i++){
-        flashLED();
-      };
-      delay(300);
+      for (int i=0;i<3;i++) flashLED();
+      delay(500);
     }
   } 
   else {
-    IPAddress myip = Ethernet.localIP();
+    myip = Ethernet.localIP();
   };
-  // attach INT0 to the net frequency detection routine
+  // attach interrupt for AC detection
+  setInterrupt0();
+  // set timer for phase counting
+  setTimer1();
+}
 
-  attachInterrupt(0, interrupt, FALLING);
+void setInterrupt0() {
+  pinMode(acPin, INPUT_PULLUP);
+  pinMode(sparePin, OUTPUT);
+  digitalWrite(sparePin, LOW); // shield AC detection
+  // attach INT0 to the net frequency detection routine
+  GICR |= (1 << INT0);    // External interrupt request 0 enable
+  MCUCR |= (1 << ISC01);  // Interrupt sense control 0 on falling edge
+}
+
+void setTimer1() {
+  // normal timer mode: count increasing, TOP = 0xffff
+  TCCR1A = 0;
+  // prescale timer1 counts
+  switch (DIVIDER) {
+  case 1: 
+    TCCR1B = (1 << CS10); 
+    break;
+  case 8: 
+    TCCR1B = (1 << CS11); 
+    break;
+  case 64: 
+    TCCR1B = (1 << CS10) | (1 << CS11); 
+    break;
+  }
 }
 
 char* createPayload(long value, char* unit, byte dec)
@@ -92,38 +132,46 @@ char* createPayload(long value, char* unit, byte dec)
 
 void loop()
 {
+  unsigned long Hz;
   client.loop();
-  if (client.connected()) {
-    // publish the detected net frequency; no detection on publishing
-    cli();
-    sum = 0;
-    cnt = 0;
-    last = 0; 
-    client.publish("/sensor/NetFrequency/gauge",createPayload(Hz,"Hz",3));
-    flashLED();
-    sei();
+  if (!client.connected()) {
+    client.connect("AVRNetIO");
   }
-  else {
-    client.connect("arduino");
-  }
-  delay(5000);
+  startCapture();
+  while (getState()); // wait for frequency measurement to end
+  Hz = ((unsigned long) (F_CPU / DIVIDER) * 1000UL / getCapture());
+  // publish the detected net frequency; no detection on publishing
+  client.publish("/sensor/NetFrequency/gauge",createPayload(Hz,"Hz",3));
+  flashLED();  
 }
 
-void interrupt( void )
-//ISR(INT0_vect)
-{
-  unsigned long usec = micros(); 
-  unsigned long diff = usec - last;
-  if (last > 0) sum += diff;
-  cnt++;
-  if (cnt == AVG) {
-    sum /= AVG;
-    Hz = 1000000000UL / sum;
-    sum = 0;
-    cnt = 0;
-  }
-  last = usec;
+void startCapture() {
+  cnt = 0;
+  sum = 0;
+  sei();
+  TCNT1 = 0;
 }
+
+unsigned char getState(){
+  if (cnt < NET) return 1; 
+  else {
+    cli(); // stop the frequency capturing 
+    return 0; 
+  };
+}
+
+unsigned long getCapture() {
+  return (sum / cnt);
+}
+
+ISR(INT0_vect)
+{
+  sum += TCNT1;
+  TCNT1 = 0;
+  if (cnt<NET) cnt++; 
+  else cli();
+}
+
 
 
 

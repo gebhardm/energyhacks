@@ -10,17 +10,18 @@
 #define NET 50        // mains frequency
 #define DIVIDER 8     // Prescaler for Timer
 #define NETCNT (unsigned int) (F_CPU / DIVIDER / NET) // @16MHz: 40.000 ticks/period
+#define CALIBRATE 280
 
 // the actual capture routines
 void setInterrupt0();
 void setTimer1();
 void startCapture();
-unsigned char getState();
 unsigned long getCapture();
 
 // frequency detection variables
 volatile unsigned long sum = 0;
 volatile unsigned char cnt = 0;
+volatile byte idle = 1;
 
 //Global variables for communication
 char payload[60];
@@ -48,7 +49,7 @@ PubSubClient client(broker, port, callback, ethClient);
 // flash the LED to display a condition
 void flashLED( void ) {
   digitalWrite(ledPin, LOW);
-  for(int i=0;i<1000;i++);
+  for(int i=0;i<10000;i++) __asm__("nop\n\t");
   digitalWrite(ledPin, HIGH);
 }
 
@@ -58,6 +59,7 @@ void toggleLED( void ) {
 
 void setup()
 {
+  int i; // loop counter
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, HIGH);
   //  initialize ethernet controller by DHCP
@@ -65,8 +67,8 @@ void setup()
     // something went wrong
     while(true)
     { 
-      for (int i=0;i<3;i++) flashLED();
-      delay(500);
+      for(i=0;i<3;i++) flashLED();
+      for(i=0;i<60000;i++) __asm__("nop\n\t");
     }
   } 
   else {
@@ -79,12 +81,14 @@ void setup()
 }
 
 void setInterrupt0() {
-  pinMode(acPin, INPUT_PULLUP);
+  //pinMode(acPin, INPUT_PULLUP);
+  pinMode(acPin, INPUT);
   pinMode(sparePin, OUTPUT);
   digitalWrite(sparePin, LOW); // shield AC detection
   // attach INT0 to the net frequency detection routine
   GICR |= (1 << INT0);    // External interrupt request 0 enable
-  MCUCR |= (1 << ISC01);  // Interrupt sense control 0 on falling edge
+  //MCUCR |= (1 << ISC01);  // Interrupt sense control 0 on falling edge
+  MCUCR |= (1 << ISC01) | (1 << ISC00);  // Interrupt sense control 0 on rising edge
 }
 
 void setTimer1() {
@@ -113,7 +117,7 @@ char* createPayload(long value, char* unit, byte dec)
   // set decimal point
   len = strlen(val);
   dp  = len - dec;
-  if (dp > 0) {
+  if ((dp > 0) && (len > dec)) {
     for(int i=len; i > dp; i--) {
       val[i+1] = val[i];
     }
@@ -138,41 +142,38 @@ void loop()
     client.connect("AVRNetIO");
   }
   startCapture();
-  while (getState()); // wait for frequency measurement to end
-  Hz = ((unsigned long) (F_CPU / DIVIDER) * 1000UL / getCapture());
-  // publish the detected net frequency; no detection on publishing
-  client.publish("/sensor/NetFrequency/gauge",createPayload(Hz,"Hz",3));
-  flashLED();  
+  while (!idle); // wait for frequency measurement to end
+  Hz = (unsigned long) F_CPU;
+  Hz /= (unsigned long) DIVIDER;
+  Hz *= 1000UL;
+  Hz /= getCapture();
+  //Hz = NETCNT - getCapture();
+  // publish the detected net frequency
+  client.publish("/sensor/frq/gauge",createPayload(Hz,"Hz",3));
+  flashLED();
 }
 
 void startCapture() {
   cnt = 0;
   sum = 0;
+  idle = 0;
   sei();
-  TCNT1 = 0;
-}
-
-unsigned char getState(){
-  if (cnt < NET) return 1; 
-  else {
-    cli(); // stop the frequency capturing 
-    return 0; 
-  };
+  TCNT1 = CALIBRATE;
 }
 
 unsigned long getCapture() {
-  return (sum / cnt);
+  return (unsigned long) (sum / NET);
 }
 
 ISR(INT0_vect)
 {
   sum += TCNT1;
-  TCNT1 = 0;
-  if (cnt<NET) cnt++; 
-  else cli();
+  TCNT1 = CALIBRATE;
+  cnt++;
+  if (cnt ==  NET) { 
+    idle = 1; 
+    cli(); 
+  }
 }
-
-
-
 
 

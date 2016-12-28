@@ -22,6 +22,7 @@ unsigned long getCapture();
 // frequency detection variables
 volatile unsigned long sum = 0;
 volatile unsigned char cnt = 0;
+volatile word ovf = 0;
 volatile byte idle = 1;
 
 //Global variables for communication
@@ -88,13 +89,15 @@ void setInterrupt0() {
   digitalWrite(sparePin, LOW); // shield AC detection
   // attach INT0 to the net frequency detection routine
   GICR |= (1 << INT0);    // External interrupt request 0 enable
-  //MCUCR |= (1 << ISC01);  // Interrupt sense control 0 on falling edge
-  MCUCR |= (1 << ISC01) | (1 << ISC00);  // Interrupt sense control 0 on rising edge
+  MCUCR |= (1 << ISC01);  // Interrupt sense control 0 on falling edge
+  //MCUCR |= (1 << ISC01) | (1 << ISC00);  // Interrupt sense control 0 on rising edge
 }
 
 void setTimer1() {
   // normal timer mode: count increasing, TOP = 0xffff
   TCCR1A = 0;
+  // enable timer1 overflow interrupt
+  TIMSK |= (1 << TOIE1);
   // prescale timer1 counts
   switch (DIVIDER) {
   case 1: 
@@ -151,20 +154,27 @@ void loop()
   Hz = getCapture();
 #endif  
   // publish the detected net frequency
-  client.publish("/sensor/frq/gauge",createPayload(Hz,"Hz",3));
+  client.publish("/sensor/netfrq/gauge",createPayload(Hz,"Hz",3));
   flashLED();
 }
 
 void startCapture() {
   cnt = 0;
   sum = 0;
+  ovf = 0;
   idle = 0;
   TCNT1 = CALIBRATE;
   sei();
 }
 
 unsigned long getCapture() {
-  return (unsigned long) (sum / NET);
+  sum = ovf * 0x10000 + sum;
+  sum /= NET;
+  return sum;
+}
+
+ISR(TIMER1_OVF_vect){
+  ovf++;
 }
 
 ISR(INT0_vect)
@@ -180,5 +190,3 @@ ISR(INT0_vect)
   }
   cnt++;
 }
-
-

@@ -10,7 +10,8 @@
 #define NET 50        // mains frequency
 #define DIVIDER 8     // Prescaler for Timer
 #define NETCNT (unsigned int) (F_CPU / DIVIDER / NET) // @16MHz: 40.000 ticks/period
-#define CALIBRATE 280
+#define CALIBRATE 0
+#define DEBUG 0
 
 // the actual capture routines
 void setInterrupt0();
@@ -143,11 +144,12 @@ void loop()
   }
   startCapture();
   while (!idle); // wait for frequency measurement to end
-  Hz = (unsigned long) F_CPU;
-  Hz /= (unsigned long) DIVIDER;
-  Hz *= 1000UL;
+  Hz = F_CPU / DIVIDER;
+  Hz *= 1000;
   Hz /= getCapture();
-  //Hz = NETCNT - getCapture();
+#if DEBUG
+  Hz = getCapture();
+#endif  
   // publish the detected net frequency
   client.publish("/sensor/frq/gauge",createPayload(Hz,"Hz",3));
   flashLED();
@@ -157,8 +159,8 @@ void startCapture() {
   cnt = 0;
   sum = 0;
   idle = 0;
-  sei();
   TCNT1 = CALIBRATE;
+  sei();
 }
 
 unsigned long getCapture() {
@@ -167,13 +169,16 @@ unsigned long getCapture() {
 
 ISR(INT0_vect)
 {
-  sum += TCNT1;
+  unsigned long tcnt;
+  tcnt = TCNT1;
   TCNT1 = CALIBRATE;
-  cnt++;
+  // first interrupt starts the actual measurement
+  if (cnt > 0) sum += tcnt;
   if (cnt ==  NET) { 
     idle = 1; 
     cli(); 
   }
+  cnt++;
 }
 
 

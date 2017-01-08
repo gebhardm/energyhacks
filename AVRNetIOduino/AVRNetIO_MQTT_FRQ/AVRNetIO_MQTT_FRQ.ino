@@ -10,18 +10,21 @@
 #define NET 50        // mains frequency
 #define DIVIDER 8     // Prescaler for Timer
 #define NETCNT (unsigned int) (F_CPU / DIVIDER / NET) // @16MHz: 40.000 ticks/period
-#define CALIBRATE 280
+#define CALIBRATE 0
+#define DEBUG 0
 
 // the actual capture routines
 void setInterrupt0();
 void setTimer1();
+void clearTimer1();
 void startCapture();
 unsigned long getCapture();
 
 // frequency detection variables
 volatile unsigned long sum = 0;
 volatile unsigned char cnt = 0;
-volatile byte idle = 1;
+volatile uint16_t ovf = 0;
+volatile uint8_t idle = 1;
 
 //Global variables for communication
 char payload[60];
@@ -76,8 +79,6 @@ void setup()
   };
   // attach interrupt for AC detection
   setInterrupt0();
-  // set timer for phase counting
-  setTimer1();
 }
 
 void setInterrupt0() {
@@ -85,15 +86,15 @@ void setInterrupt0() {
   pinMode(acPin, INPUT);
   pinMode(sparePin, OUTPUT);
   digitalWrite(sparePin, LOW); // shield AC detection
-  // attach INT0 to the net frequency detection routine
-  GICR |= (1 << INT0);    // External interrupt request 0 enable
-  //MCUCR |= (1 << ISC01);  // Interrupt sense control 0 on falling edge
-  MCUCR |= (1 << ISC01) | (1 << ISC00);  // Interrupt sense control 0 on rising edge
+  MCUCR |= (1 << ISC01);  // Interrupt sense control 0 on falling edge
+  //MCUCR |= (1 << ISC01) | (1 << ISC00);  // Interrupt sense control 0 on rising edge
 }
 
 void setTimer1() {
   // normal timer mode: count increasing, TOP = 0xffff
   TCCR1A = 0;
+  // enable timer1 overflow interrupt
+  TIMSK |= (1 << TOIE1);
   // prescale timer1 counts
   switch (DIVIDER) {
   case 1: 
@@ -106,6 +107,12 @@ void setTimer1() {
     TCCR1B = (1 << CS10) | (1 << CS11); 
     break;
   }
+  TCNT1 = CALIBRATE;
+}
+
+void clearTimer1() {
+  TIMSK &= ~(1<<TOIE1);
+  TCCR1B &= ~((1<<CS10)|(1<<CS11)|(1<<CS12)); 
 }
 
 char* createPayload(long value, char* unit, byte dec)
@@ -143,37 +150,50 @@ void loop()
   }
   startCapture();
   while (!idle); // wait for frequency measurement to end
-  Hz = (unsigned long) F_CPU;
-  Hz /= (unsigned long) DIVIDER;
-  Hz *= 1000UL;
+  Hz = F_CPU / DIVIDER;
+  Hz *= 1000;
   Hz /= getCapture();
-  //Hz = NETCNT - getCapture();
+#if DEBUG
+  Hz = getCapture();
+#endif  
   // publish the detected net frequency
-  client.publish("/sensor/frq/gauge",createPayload(Hz,"Hz",3));
+  client.publish("/sensor/netfrq/gauge",createPayload(Hz,"Hz",3));
   flashLED();
 }
 
 void startCapture() {
   cnt = 0;
   sum = 0;
+  ovf = 0;
   idle = 0;
-  sei();
-  TCNT1 = CALIBRATE;
+  // attach INT0 to the net frequency detection routine
+  GICR |= (1 << INT0);    // External interrupt request 0 enable
+  setTimer1();
 }
 
 unsigned long getCapture() {
-  return (unsigned long) (sum / NET);
+  unsigned long res;
+  res = ovf * 0x10000 + sum;
+  res /= NET;
+  return res;
+}
+
+ISR(TIMER1_OVF_vect){
+  ovf++;
 }
 
 ISR(INT0_vect)
 {
-  sum += TCNT1;
+  unsigned long tcnt;
+  tcnt = TCNT1;
   TCNT1 = CALIBRATE;
-  cnt++;
+  // first interrupt starts the actual measurement
+  if (cnt > 0) sum += tcnt;
   if (cnt ==  NET) { 
-    idle = 1; 
-    cli(); 
+    idle = 1;
+    GICR &= ~(1<<INT0); // detach INT0; 
+    clearTimer1();
   }
+  cnt++;
 }
-
 

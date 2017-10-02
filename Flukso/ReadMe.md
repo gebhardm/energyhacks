@@ -1,9 +1,9 @@
-#Flukso tips and tricks
+# Flukso tips and tricks
 This folder contains tips and tricks with respect to running a Fluksometer (FLM).
 
 For the FLM itself, please refer to [www.flukso.net](http://www.flusko.net)
 
-##Testing FLMlocal things locally
+## Testing FLMlocal things locally
 My repository [FLMlocal](https://github.com/gebhardm/flmlocal) contains a tweak of the Fluksometer's own webserver files. This software not necessarily has to run on a Fluksometer. For test purposes I copy the FLM's www/-content onto my Mac and "play" with it without interfering with FLM operations.
 
 To do the same, perform following steps:

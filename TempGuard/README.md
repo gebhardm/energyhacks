@@ -1,4 +1,4 @@
-#Temp Guard
+# Temp Guard
 Temp Guard is the solution to an issue we found when moving into our own home.
 There the warm water supply had a circulation pump that always ran to put hot
 water to the outlets for pure convenience. This was a twofold mess:

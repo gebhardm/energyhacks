@@ -1,4 +1,4 @@
-#AVRNetIOduino
+# AVRNetIOduino
 This hack is based on different internet sources to actually use the Arduino IDE also on a Pollin AVR NetIO board available as kit for just 20 Euros; see [www.pollin.de](http://www.pollin.de). This enables a rather cheap variant of the Arduino plus Ethernet option.
 
 The bootloader source file is taken from the Arduino 1.0.2 sources and is enhanced to work also with both an Atmel ATmega644P and ATmega32 microcontroller on the Pollin AVR NetIO board.
@@ -14,7 +14,7 @@ AVRNetIO works also fine using UIPEthernet by Norbert Truchsess; see
 
 There are surely different sources that did the same adaptation already; but after fiddling two days with the Sanguino bootloader code and not succeeding (device ID not read?!), I tried to enhance the original Arduino bootloader from scratch and by that learn about its behavior - this I may recommend to everybody trying also to understand what happens here.
 
-##Using the AVRNetIO hardware in the Arduino IDE
+## Using the AVRNetIO hardware in the Arduino IDE
 
 Copy the [/AVRNetIO/](AVRNetIO/) folder into the Arduino's hardware folder; use an LED on the J11 jumper header to see bootloader activity (LEDpin in this case is  "1"); this I made a permanent fix by changing resistor R13 from 10k to 1k and soldering in an LED with anode in the hole marked as "normal" and cathode in the center hole of jumper J11 - LED active is on LOW though. Be aware that the Arduino IDE is constantly changed (not always to the better), so, please check for the ReadMe file and copy additional folders from the original Arduino hardware folders, if necessary - I currently get IDE v1.6.5 not writing to the AVRNetIO board, so keep using an old v1.0.5 IDE and this files' version as of commit [75e329](75e32968b6504dd975674b5d2d65d24a27c60544).
 

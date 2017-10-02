@@ -1,4 +1,4 @@
-#RS232 to 485 Converter
+# RS232 to 485 Converter
 
 The two boards in this project are the result of a test when we got our
 PV DC-AC converter installed. It has a RS-485 interface to read it out with

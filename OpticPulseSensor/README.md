@@ -1,4 +1,4 @@
-#Optic Pulse Sensor
+# Optic Pulse Sensor
 
 Use a NE567 to detect the reading of a reflexive optocoupler and drive the LED of an optocoupler
 for galvanic decoupled open-collector output; the plain version is without the extra optocoupler

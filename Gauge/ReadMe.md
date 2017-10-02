@@ -1,4 +1,4 @@
-#Simple MQTT Gauges
+# Simple MQTT Gauges
 
 This hack is a tiny node.js based web server that subscribes to an MQTT topic from a sensor publisher and displays the received values as gauges using the [JustGage](http://justgage.com/) visualization; it computes payloads with the format
 

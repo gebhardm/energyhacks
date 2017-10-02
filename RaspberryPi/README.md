@@ -1,4 +1,4 @@
-#Raspberry Pi hacks
+# Raspberry Pi hacks
 
 This folder contains some programs and scripts (in own folders) to be used
 on a Raspberry Pi; in the first place all programs provided here are used 

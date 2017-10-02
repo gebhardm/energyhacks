@@ -1,4 +1,4 @@
-#Simple MQTT Graph
+# Simple MQTT Graph
 
 This hack is a tiny node.js based web server that subscribes to an MQTT topic from a sensor publisher and displays the received values as a continuous graph; the payload format used is
 

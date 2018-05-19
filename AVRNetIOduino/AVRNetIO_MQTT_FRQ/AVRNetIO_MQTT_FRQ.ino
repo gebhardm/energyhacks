@@ -1,30 +1,53 @@
 /* AVRNetIO using MQTT to post frequency readings to an MQTT broker */
 /* code is for ATmega32 at 16MHz */
+/* Frequency measurement adapted from Tynemouth Software "improved Arduino Frequency Counter" */
+/* I am not yet satisfied... */
+
 #include <SPI.h>
 #include <UIPEthernet.h>  // https://github.com/ntruchsess/arduino_uip
 #include <PubSubClient.h>  // https://github.com/knolleary/pubsubclient
 
 #define ledPin 1      // signal LED
 #define acPin 10      // AC input via 10k resistor
-#define sparePin 11   // a pin set to low to shield the AC signal
-#define NET 50        // mains frequency
-#define DIVIDER 8     // Prescaler for Timer
-#define NETCNT (unsigned int) (F_CPU / DIVIDER / NET) // @16MHz: 40.000 ticks/period
-#define CALIBRATE 0
-#define DEBUG 0
-
-// the actual capture routines
-void setInterrupt0();
-void setTimer1();
-void clearTimer1();
-void startCapture();
-unsigned long getCapture();
 
 // frequency detection variables
-volatile unsigned long sum = 0;
-volatile unsigned char cnt = 0;
-volatile uint16_t ovf = 0;
-volatile uint8_t idle = 1;
+volatile unsigned long startTime;
+volatile unsigned long endTime;
+volatile unsigned long count;
+float lastFreq = 0;
+
+// the frequency measurement interrupt routines
+void trigger();
+void start();
+void pulse();
+float getFrequency(unsigned int);
+
+void trigger()
+{
+  attachInterrupt(0, start, RISING);
+}
+
+void start()
+{
+  startTime = micros();
+  attachInterrupt(0, pulse, RISING);
+}
+
+void pulse()
+{
+  endTime = micros();
+  count++;
+}
+
+float getFrequency(unsigned int sampleTime)
+{
+  count = 0;
+  attachInterrupt(0, trigger, RISING);
+  delay(sampleTime);
+  detachInterrupt(0);
+  if (count==0) return 0;
+  else return float(1000000 * count) / float(endTime - startTime);
+}
 
 //Global variables for communication
 char payload[60];
@@ -77,42 +100,6 @@ void setup()
   else {
     myip = Ethernet.localIP();
   };
-  // attach interrupt for AC detection
-  setInterrupt0();
-}
-
-void setInterrupt0() {
-  //pinMode(acPin, INPUT_PULLUP);
-  pinMode(acPin, INPUT);
-  pinMode(sparePin, OUTPUT);
-  digitalWrite(sparePin, LOW); // shield AC detection
-  MCUCR |= (1 << ISC01);  // Interrupt sense control 0 on falling edge
-  //MCUCR |= (1 << ISC01) | (1 << ISC00);  // Interrupt sense control 0 on rising edge
-}
-
-void setTimer1() {
-  // normal timer mode: count increasing, TOP = 0xffff
-  TCCR1A = 0;
-  // enable timer1 overflow interrupt
-  TIMSK |= (1 << TOIE1);
-  // prescale timer1 counts
-  switch (DIVIDER) {
-  case 1: 
-    TCCR1B = (1 << CS10); 
-    break;
-  case 8: 
-    TCCR1B = (1 << CS11); 
-    break;
-  case 64: 
-    TCCR1B = (1 << CS10) | (1 << CS11); 
-    break;
-  }
-  TCNT1 = CALIBRATE;
-}
-
-void clearTimer1() {
-  TIMSK &= ~(1<<TOIE1);
-  TCCR1B &= ~((1<<CS10)|(1<<CS11)|(1<<CS12)); 
 }
 
 char* createPayload(long value, char* unit, byte dec)
@@ -143,57 +130,16 @@ char* createPayload(long value, char* unit, byte dec)
 
 void loop()
 {
-  unsigned long Hz;
+  float freq = 0;
+  if (lastFreq > 5000 || lastFreq == 0) freq = 1000 * getFrequency(1000);
+  else freq = 1000 * getFrequency(3333);
+  lastFreq = freq;
+
   client.loop();
   if (!client.connected()) {
     client.connect("AVRNetIO");
   }
-  startCapture();
-  while (!idle); // wait for frequency measurement to end
-  Hz = F_CPU / DIVIDER;
-  Hz *= 1000;
-  Hz /= getCapture();
-#if DEBUG
-  Hz = getCapture();
-#endif  
   // publish the detected net frequency
-  client.publish("/sensor/netfrq/gauge",createPayload(Hz,"Hz",3));
+  client.publish("/sensor/netfrq/gauge",createPayload(freq,"Hz",3));
   flashLED();
 }
-
-void startCapture() {
-  cnt = 0;
-  sum = 0;
-  ovf = 0;
-  idle = 0;
-  // attach INT0 to the net frequency detection routine
-  GICR |= (1 << INT0);    // External interrupt request 0 enable
-  setTimer1();
-}
-
-unsigned long getCapture() {
-  unsigned long res;
-  res = ovf * 0x10000 + sum;
-  res /= NET;
-  return res;
-}
-
-ISR(TIMER1_OVF_vect){
-  ovf++;
-}
-
-ISR(INT0_vect)
-{
-  unsigned long tcnt;
-  tcnt = TCNT1;
-  TCNT1 = CALIBRATE;
-  // first interrupt starts the actual measurement
-  if (cnt > 0) sum += tcnt;
-  if (cnt ==  NET) { 
-    idle = 1;
-    GICR &= ~(1<<INT0); // detach INT0; 
-    clearTimer1();
-  }
-  cnt++;
-}
-

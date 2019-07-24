@@ -13,10 +13,10 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define wifi_ssid "<ssid>"
-#define wifi_password "<wlan password>"
+#define wifi_ssid "xxxx" //"<ssid>"
+#define wifi_password "yyyy" //"<wlan password>"
 
-#define mqtt_server "<MQTT broker IP address>"  // the broker is the Fluksometer 
+#define mqtt_server "zzzz" //"<MQTT broker IP address>" 
 
 //#include <SPI.h>
 #include <Wire.h>
@@ -44,6 +44,7 @@ void setup()
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C); //
   // set up sensor
   hp03s.begin();
+  hp03s.printAllValues();
   // do a display clear and init
   display.clearDisplay(); // Clear display buffer
   display.setTextSize(1);      // Normal 1:1 pixel scale
@@ -60,20 +61,8 @@ void loop()
     reconnect();
   }
   client.loop();
-  // do the measurement and publish part
-  hp03s.measure(); // You've to call this method every time You want to get new values.
-  double temp = hp03s.getTemperature();
-  double pres = hp03s.getPressure();
-  // output
-  display.clearDisplay(); // Clear display buffer
-  display.setCursor(0, 0);     // Start at top-left corner
-  display.print("Temp: ");
-  display.print(temp);
-  display.println(" C");
-  display.print("Pres: ");
-  display.print(pres);
-  display.print(" hPa");
-  display.display();
+  // perform the measurement
+  handle_sensor();
   // wait 2 seconds
   delay(2000);
 }
@@ -112,4 +101,32 @@ void reconnect() {
       delay(5000);
     }
   }
+}
+
+void handle_sensor() {
+  // do the measurement and publish part
+  hp03s.measure(); // You've to call this method every time You want to get new values.
+  double temp = hp03s.getTemperature();
+  double pres = hp03s.getPressure();
+  // output to OLED display
+  display.clearDisplay(); // Clear display buffer
+  display.setCursor(0, 0);     // Start at top-left corner
+  display.print("Temp: ");
+  display.print(temp);
+  display.println(" C");
+  display.print("Pres: ");
+  display.print(pres);
+  display.print(" hPa");
+  display.display();
+  // publish to MQTT
+  String tempTopic = "/sensor/temperature/gauge";
+  String presTopic = "/sensor/pressure/gauge";
+  String tempValue = "[" + String(temp) + ", \"°C\"]";
+  String presValue = "[" + String(pres) + ", \"hPa\"]";
+  const char * tempT = tempTopic.c_str();
+  const char * tempV = tempValue.c_str();
+  client.publish(tempT,tempV,false);
+  const char * presT = presTopic.c_str();
+  const char * presV = presValue.c_str();
+  client.publish(presT,presV,false);
 }

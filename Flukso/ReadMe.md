@@ -22,6 +22,6 @@ Note that partly in www/script/controller/-contained files the target address ma
 
 	var broker = '<FLM IP address>'; //location.host;
 	
-Otherwise the FLM-MQTT-broker is not reached; be aware to change it back when you want to tweak your FLM again; see for example [the line to tweak the gauge display](https://github.com/gebhardm/flmlocal/blob/master/www/scripts/controllers/gauge.js#L38); leave the port unchanged.
+Otherwise the FLM-MQTT-broker is not reached; be aware to change it back when you want to tweak your FLM again; see for example [the line to tweak the gauge display](https://github.com/gebhardm/flmlocal/blob/master/www/scripts/controllers/gauge_generic.js#L43); leave the port unchanged.
 
 <img src="run_FLM-UI_locally.png" width=500px>

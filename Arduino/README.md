@@ -16,3 +16,6 @@ The Uno NTP ENC28J60 sketch sends Network Time Protocol packages to a
 time server and receives the corresponding time packages via UDP; time
 is output to the serial connection. It uses [Norbert Truchsess' Arduino UIP ENC28J60 library](https://github.com/ntruchsess/arduino_uip).<br/>
 This sketch works with an Arduino Uno and attached ENC28J60 module. For use with an Arduino Leonardo the Slave Select assignment has to be changed in the library file [Enc28J60Network.h](https://github.com/ntruchsess/arduino_uip/blob/master/utility/Enc28J60Network.h#L30).
+
+## Game of Life
+In memory of John Horton Conway this sketch implements (yet another time) the Game of Life on an Arduino (Mini Pro) with attached MAX7219 controlled LED matrix.

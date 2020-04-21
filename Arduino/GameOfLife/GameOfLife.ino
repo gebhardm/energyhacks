@@ -1,5 +1,5 @@
 // code adapted from https://github.com/tobyoxborrow/gameoflife-arduino
-// now with torus plane
+// now with torus surface leading "over the edges"
 // in memory of John Horton Conway I had to also program this Game of Life
 // Rest in Peace
 
@@ -26,27 +26,8 @@ byte GENS = 0;       // counter for generations
 byte NO_CHANGES = 0; // counter for generations without changes
 
 // game state. 0 is dead cell, 1 is live cell
-boolean grid[MAX_Y][MAX_X] = {
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-};
-
-boolean new_grid[MAX_Y][MAX_X] = {
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-};
+boolean grid[MAX_Y][MAX_X];
+boolean new_grid[MAX_Y][MAX_X];
 
 LedControl lc = LedControl(DIN_PIN, CLK_PIN, CS_PIN, 1);
 
@@ -101,42 +82,32 @@ void play_gol() {
 }
 
 // count the number of neighbour live cells for a given cell
-byte count_neighbours(byte y, byte x) {
+byte count_neighbours(int y, int x) {
   byte count = 0;
-  byte xl = 0; // left of x
-  byte xr = 0; // right of x
-  byte yd = 0; // down from y
-  byte yu = 0; // up from y
-  // we deal with a torus: MAX_X <-> 0; MAX_Y <-> 0
-  if ((x + 1) == MAX_X) xr = 0; else xr = x + 1;
-  if (x == 0) xl = MAX_X - 1; else xl = x - 1;
-  if ((y + 1) == MAX_Y) yu = 0; else yu = y + 1;
-  if (y == 0) yd = MAX_Y - 1; else yd = y - 1;
+  // torus surface: MAX_X <-> 0; MAX_Y <-> 0
+  byte xl = mod(x - 1, MAX_X); // left of x
+  byte xr = mod(x + 1, MAX_X); // right of x
+  byte yd = mod(y - 1, MAX_Y); // down from y
+  byte yu = mod(y + 1, MAX_Y); // up from y
   // the neighbourhood and its state
   count += grid[yd][xl];
   count += grid[y][xl];
   count += grid[yu][xl];
-
   count += grid[yd][x];
   count += grid[yu][x];
-
   count += grid[yd][xr];
   count += grid[y][xr];
   count += grid[yu][xr];
-
   return count;
 }
 
-// reset the grid
-// we could set it all to zero then flip some bits on
-// but that leads to some predictable games I see quite frequently
-// instead, keep previous game state and flip some bits on
+// reset the grid - use ramdomizer to get different generation zeros
 void reset_grid() {
   NO_CHANGES = 0;
   GENS = 0;
   for (int y = 0; y < MAX_Y; y++) {
     for (int x = 0; x < MAX_X; x++) {
-      if (random(0, MAX_X) <= 1) grid[y][x] = 1;
+      if (random(0, MAX_X) < 2) grid[y][x] = 1;
     }
   }
 }
@@ -160,4 +131,9 @@ void display_grid() {
       lc.setLed(0, y, x, grid[y][x]);
     }
   }
+}
+
+// modulo function allowing also -1
+int mod(int a, int b) {
+  return a < 0 ? (a + b) % b : a % b;
 }

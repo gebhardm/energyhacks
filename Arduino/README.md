@@ -19,3 +19,5 @@ This sketch works with an Arduino Uno and attached ENC28J60 module. For use with
 
 ## Game of Life
 In memory of John Horton Conway this sketch implements (yet another time) the Game of Life on an Arduino (Mini Pro) with attached MAX7219 controlled LED matrix.
+
+<img src="GameOfLife.jpg" width=300px>

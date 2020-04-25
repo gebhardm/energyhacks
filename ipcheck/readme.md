@@ -15,23 +15,42 @@ Use your home directory respectively.
 ## Prerequisites
 
 To run above script, email notification must be possible from your computer.
-For a freshly installed Raspian image this requires some steps; replace with you actual email provider's data.
+For a freshly installed Raspbian image this requires some steps; replace with you actual email provider's data following the msmtp help.
 
 Install email utilities and smtp support:
 
-     sudo apt-get install mailutils ssmtp
+    sudo apt-get -y install mailutils msmtp
 
 Configure mail:
 
-     sudo nano /etc/ssmtp/ssmtp.conf
+    sudo nano /etc/msmtprc
 
-     AuthUser=<your.email@email.domain>
-     AuthPass=<your password>
-     mailhub=smtp.email.domain:587
-     UseSTARTTLS=YES
-     UseTLS=YES
+    defaults
+    port	587
+    tls	on
+    tls_starttls on
+    tls_trust_file /etc/ssl/certs/ca-certificates.crt
+    logfile	/var/log/msmtp
+    syslog	on
 
-     sudo nano /etc/ssmtp/revaliases
+    account web.de
+    host	smtp.web.de
+    from	<your email id>@web.de
+    auth	on
+    user	<your email id>@web.de
+    password <your password>
 
-     root:<your.email@email.domain>:smtp.email.domain:587
-     pi:<your.email@email.domain>:smtp.email.domain:587
+    account default : web.de
+
+    aliases /etc/aliases
+
+    sudo nano /etc/aliases
+
+    root: <your.email@email.domain>
+    pi: <your.email@email.domain>
+    default: <your.email@email.domain>
+     
+    sudo nano /etc/mail.rc
+     
+    # file: /etc/mail.rc
+    set sendmail="/usr/bin/msmtp -t"

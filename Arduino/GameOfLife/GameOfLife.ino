@@ -85,19 +85,11 @@ void play_gol() {
 byte count_neighbours(int y, int x) {
   byte count = 0;
   // torus surface: MAX_X <-> 0; MAX_Y <-> 0
-  byte xl = mod(x - 1, MAX_X); // left of x
-  byte xr = mod(x + 1, MAX_X); // right of x
-  byte yd = mod(y - 1, MAX_Y); // down from y
-  byte yu = mod(y + 1, MAX_Y); // up from y
   // the neighbourhood and its state
-  count += grid[yd][xl];
-  count += grid[y][xl];
-  count += grid[yu][xl];
-  count += grid[yd][x];
-  count += grid[yu][x];
-  count += grid[yd][xr];
-  count += grid[y][xr];
-  count += grid[yu][xr];
+  for (byte dy = 0; dy <= 2; dy++)
+    for (byte dx = 0; dx <= 2; dx++)
+      if ((dx!=1) && (dy!=1))
+        count += grid[mod(y + dy - 1, MAX_Y)][mod(x + dx - 1, MAX_X)];
   return count;
 }
 
@@ -107,7 +99,7 @@ void reset_grid() {
   GENS = 0;
   for (int y = 0; y < MAX_Y; y++) {
     for (int x = 0; x < MAX_X; x++) {
-      if (random(0, MAX_X) < 2) grid[y][x] = 1;
+      if (random(0, MAX_X) < 4) grid[y][x] = 1;
     }
   }
 }

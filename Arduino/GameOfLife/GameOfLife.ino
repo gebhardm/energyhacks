@@ -88,7 +88,7 @@ byte count_neighbours(int y, int x) {
   // the neighbourhood and its state
   for (byte dy = 0; dy <= 2; dy++)
     for (byte dx = 0; dx <= 2; dx++)
-      if ((dx!=1) && (dy!=1))
+      if (!((dx==1) && (dy==1)))
         count += grid[mod(y + dy - 1, MAX_Y)][mod(x + dx - 1, MAX_X)];
   return count;
 }
@@ -99,7 +99,7 @@ void reset_grid() {
   GENS = 0;
   for (int y = 0; y < MAX_Y; y++) {
     for (int x = 0; x < MAX_X; x++) {
-      if (random(0, MAX_X) < 4) grid[y][x] = 1;
+      if (random(0, MAX_X) < 2) grid[y][x] = 1;
     }
   }
 }

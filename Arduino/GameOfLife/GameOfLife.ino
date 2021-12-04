@@ -10,8 +10,8 @@
 
 // LED matrix pins
 #define DIN_PIN 12
-#define CLK_PIN 11
-#define CS_PIN 10
+#define CS_PIN 11
+#define CLK_PIN 10
 // grid dimensions corresponding to LED matrix
 #define MAX_Y 8
 #define MAX_X 8
@@ -22,8 +22,8 @@
 // how many generations to wait on no changes before starting a new game
 #define NO_CHANGES_RESET 5
 
-byte GENS = 0;       // counter for generations
-byte NO_CHANGES = 0; // counter for generations without changes
+byte gens = 0;       // counter for generations
+byte no_changes = 0; // counter for generations without changes
 
 // game state. 0 is dead cell, 1 is live cell
 boolean grid[MAX_Y][MAX_X];
@@ -47,12 +47,12 @@ void setup() {
 void loop() {
   play_gol();
 
-  GENS++;
+  gens++;
 
   display_grid();
   delay(GEN_DELAY);
   // reset the grid if the loop has been running a long time or no changes occur
-  if ((GENS == GENS_MAX) || (NO_CHANGES == NO_CHANGES_RESET)) reset_grid();
+  if ((gens == GENS_MAX) || (no_changes == NO_CHANGES_RESET)) reset_grid();
 }
 
 // play game of life
@@ -77,7 +77,7 @@ void play_gol() {
 
   // update grid and count no changes occurring
   if (update_grid() == 0) {
-    NO_CHANGES++;
+    no_changes++;
   }
 }
 
@@ -86,17 +86,17 @@ byte count_neighbours(int y, int x) {
   byte count = 0;
   // torus surface: MAX_X <-> 0; MAX_Y <-> 0
   // the neighbourhood and its state
-  for (byte dy = 0; dy <= 2; dy++)
-    for (byte dx = 0; dx <= 2; dx++)
-      if (!((dx==1) && (dy==1)))
-        count += grid[mod(y + dy - 1, MAX_Y)][mod(x + dx - 1, MAX_X)];
+  for (short dy = -1; dy <= 1; dy++)
+    for (short dx = -1; dx <= 1; dx++)
+      if ((dx != 0) || (dy != 0))
+        count += grid[mod(y + dy, MAX_Y)][mod(x + dx, MAX_X)];
   return count;
 }
 
 // reset the grid - use ramdomizer to get different generation zeros
 void reset_grid() {
-  NO_CHANGES = 0;
-  GENS = 0;
+  no_changes = 0;
+  gens = 0;
   for (int y = 0; y < MAX_Y; y++) {
     for (int x = 0; x < MAX_X; x++) {
       if (random(0, MAX_X) < 2) grid[y][x] = 1;

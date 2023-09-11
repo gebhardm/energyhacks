@@ -20,12 +20,12 @@
 // how many generations to wait on no changes before starting a new game
 #define NO_CHANGES_RESET 5
 
-byte gens = 0;       // counter for generations
-byte no_changes = 0; // counter for generations without changes
+uint8_t gens = 0;       // counter for generations
+uint8_t no_changes = 0; // counter for generations without changes
 
 // game state. 0 is dead cell, 1 is live cell
-boolean grid[MAX_Y * MAX_X];
-boolean new_grid[MAX_Y * MAX_X];
+bool grid[MAX_Y * MAX_X];
+bool new_grid[MAX_Y * MAX_X];
 
 // map the weird geometry of the shift registers (taken from https://github.com/ph1p/ikea-led-obegraensad)
 const uint8_t ledmap[MAX_Y * MAX_X] = {
@@ -49,26 +49,29 @@ const uint8_t ledmap[MAX_Y * MAX_X] = {
 void setup() {
   // seed random number generator from unused analog pin
   randomSeed(analogRead(A0));
-
+  // set the output pins
   pinMode(CLA_PIN, OUTPUT);
   pinMode(CLK_PIN, OUTPUT);
   pinMode(DO_PIN, OUTPUT);
   pinMode(EN_PIN, OUTPUT);
-
+  // set the LED output
   //analogWrite(EN_PIN,200); // PWM to switch LED brightness
+  // route the grid directly to the LEDs
   digitalWrite(EN_PIN, LOW);
+  // no data, nothing to latch
   digitalWrite(CLA_PIN, HIGH);
-
+  // set initial, randomly set grid
   reset_grid();
   display_grid();
 }
 
 void loop() {
+  // play the game of life for this generation
   play_gol();
-
-  gens++;
-
+  // display this generation
   display_grid();
+  // go to the next generation
+  gens++;
   delay(GEN_DELAY);
   // reset the grid if the loop has been running a long time or no changes occur
   if ((gens == GENS_MAX) || (no_changes == NO_CHANGES_RESET)) reset_grid();
@@ -76,9 +79,9 @@ void loop() {
 
 // play game of life
 void play_gol() {
-  for (byte y = 0; y < MAX_Y; y++) {
-    for (byte x = 0; x < MAX_X; x++) {
-      byte neighbours = count_neighbours(y, x);
+  for (uint8_t y = 0; y < MAX_Y; y++) {
+    for (uint8_t x = 0; x < MAX_X; x++) {
+      uint8_t neighbours = count_neighbours(y, x);
       // a new cell is dead by default
       new_grid[y * MAX_Y + x] = 0;
       //
@@ -93,7 +96,6 @@ void play_gol() {
         new_grid[y * MAX_Y + x] = 1;
     }
   }
-
   // update grid and count no changes occurring
   if (update_grid() == 0) {
     no_changes++;
@@ -101,8 +103,8 @@ void play_gol() {
 }
 
 // count the number of neighbour live cells for a given cell
-byte count_neighbours(int y, int x) {
-  byte count = 0;
+uint8_t count_neighbours(int y, int x) {
+  uint8_t count = 0;
   // torus surface: MAX_X <-> 0; MAX_Y <-> 0
   // the neighbourhood and its state
   for (short dy = -1; dy <= 1; dy++)
@@ -123,11 +125,11 @@ void reset_grid() {
   }
 }
 
-byte update_grid() {
+uint8_t update_grid() {
   // update the current grid from the new grid and count how many changes occured
-  byte changes = 0;
-  for (byte y = 0; y < MAX_Y; y++) {
-    for (byte x = 0; x < MAX_X; x++) {
+  uint8_t changes = 0;
+  for (uint8_t y = 0; y < MAX_Y; y++) {
+    for (uint8_t x = 0; x < MAX_X; x++) {
       if (new_grid[y * MAX_Y + x] != grid[y * MAX_Y + x]) changes++;
       grid[y * MAX_Y + x] = new_grid[y * MAX_Y + x];
     }
@@ -139,11 +141,17 @@ byte update_grid() {
 void display_grid() {
   for (int y = 0; y < MAX_Y; y++) {
     for (int x = 0; x < MAX_X; x++) {
+      // pass the cells to the LED matrix
+      // note: the LEDs are on or off, as such <>0 or 0, a digitalWrite suffices
+      // there may be a smarter implementation to allow grayscale using the full
+      // byte of a cell in the grid
       digitalWrite(DO_PIN, grid[ledmap[y * MAX_Y + x]]);
+      // toggle clock for next bit
       digitalWrite(CLK_PIN, HIGH);
       digitalWrite(CLK_PIN, LOW);
     }
   }
+  // latch the LED grid
   digitalWrite(CLA_PIN, HIGH);
   digitalWrite(CLA_PIN, LOW);
 }

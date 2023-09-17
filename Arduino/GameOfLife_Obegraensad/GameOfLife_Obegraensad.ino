@@ -55,11 +55,14 @@ void setup() {
   pinMode(DO_PIN, OUTPUT);
   pinMode(EN_PIN, OUTPUT);
   // set the LED output
-  //analogWrite(EN_PIN,200); // PWM to switch LED brightness
-  // route the grid directly to the LEDs
-  digitalWrite(EN_PIN, LOW);
-  // no data, nothing to latch
-  digitalWrite(CLA_PIN, HIGH);
+  // analogWrite(EN_PIN,200); // PWM to switch LED brightness
+  // route the grid directly to the LEDs - OE/EN is internally pulled high
+  digitalWrite(EN_PIN, LOW); 
+  // no data, nothing to latch yet - CLA is internally pulled low
+  digitalWrite(CLA_PIN, LOW);
+  // set the clock and data pina low
+  digitalWrite(CLK_PIN, LOW);
+  digitalWrite(DO_PIN, LOW);
   // set initial, randomly set grid
   reset_grid();
   display_grid();
@@ -151,7 +154,7 @@ void display_grid() {
       digitalWrite(CLK_PIN, LOW);
     }
   }
-  // latch the LED grid
+  // transfer the cells to the LED output
   digitalWrite(CLA_PIN, HIGH);
   digitalWrite(CLA_PIN, LOW);
 }

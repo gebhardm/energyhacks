@@ -21,3 +21,8 @@ This sketch works with an Arduino Uno and attached ENC28J60 module. For use with
 In memory of John Horton Conway this sketch implements (yet another time) the Game of Life on an Arduino (Mini Pro) with attached MAX7219 controlled LED matrix.
 
 <img src="GameOfLife.jpg" width=300px>
+
+## Mandelbrot Set
+As an example for having an alternative display on an IKEA Obegräsad LED lamp this is the Arduino preparation to display the classic Mandelbrot Set, the "Apfelmännchen".
+
+<img src="MandelbrotSet.jpg" width=300px>

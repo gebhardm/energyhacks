@@ -7,7 +7,7 @@
 #define MAX_Y 8
 #define MAX_X 8
 
-void rest_grid(void);
+void reset_grid(void);
 void display_grid(void);
 void Mandelbrot(float, float, float, float);
 
@@ -26,10 +26,9 @@ void setup() {
 
 void loop() {
   Mandelbrot(-2, 1, -1.5, 1.5);
-  delay(5000);
-  reset_grid();
   display_grid();
   delay(5000);
+  reset_grid();
 }
 
 // Draw a Apfelmaennchen
@@ -37,13 +36,12 @@ void Mandelbrot(float Xn, float Xp, float Yn, float Yp) {
   float x0, y0, xtemp;
   float x = 0;
   float y = 0;
-  uint16_t Px, Py;
-  uint16_t iteration = 0;
-  uint16_t max_iteration = 256;
+  int iteration = 0;
+  int max_iteration = 256;
 
-  for (Py = 0; Py < MAX_Y; Py++) {
+  for (uint8_t Py = 0; Py < MAX_Y; Py++) {
     y0 = (Yp - Yn) / MAX_Y * Py + Yn;
-    for (Px = 0; Px < MAX_X; Px++) {
+    for (uint8_t Px = 0; Px < MAX_X; Px++) {
       x0 = (Xp - Xn) / MAX_X * Px + Xn;
       x = 0;
       y = 0;
@@ -54,8 +52,7 @@ void Mandelbrot(float Xn, float Xp, float Yn, float Yp) {
         x = xtemp;
         iteration++;
       }
-      grid[Py * MAX_Y + Px] = (uint8_t)(iteration & 0xff);
-      display_grid();
+      grid[Py * MAX_Y + Px] = (uint8_t) iteration;
     }
   }
 }
@@ -71,13 +68,13 @@ void reset_grid() {
 
 // display the current grid to the LED matrix
 void display_grid() {
-  for (int y = 0; y < MAX_Y; y++) {
-    for (int x = 0; x < MAX_X; x++) {
+  for (uint8_t y = 0; y < MAX_Y; y++) {
+    for (uint8_t x = 0; x < MAX_X; x++) {
       // pass the grid to the LED matrix
       uint8_t r = grid[y * MAX_Y + x] & 0b11111000;
       uint8_t g = grid[y * MAX_Y + x] & 0b01111100;
       uint8_t b = grid[y * MAX_Y + x] & 0b00011111;
-      pixels.setPixelColor(y * MAX_Y + x, pixels.Color(r,g,b));
+      pixels.setPixelColor(y * MAX_Y + x, pixels.Color(r, g, b));
     }
   }
   // transfer the cells to the LED output

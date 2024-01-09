@@ -65,44 +65,37 @@ void loop() {
   display_grid(0);
   delay(2000);
   // display pressure
+  memset(grid, 0, MAX_Y * MAX_X);
+  // display condition icon
+  // draw_num(0, 12, pres);
   // output rain
-  if (pres <= 1000) {
-    memset(grid, 0, MAX_Y * MAX_X);
+  if (pres < 990) {
     draw_char(0, 0, 14);
     draw_char(8, 0, 15);
     draw_char(0, 8, 16);
     draw_char(8, 8, 17);
-    display_grid(0);
-    delay(2000);
   }
   // output cloud
-  if ((pres > 1000) && (pres < 1015)) {
-    memset(grid, 0, MAX_Y * MAX_X);
+  else if ((pres >= 990) && (pres < 1010)) {
     draw_char(0, 0, 14);
     draw_char(8, 0, 15);
-    display_grid(0);
-    delay(2000);
   }
   // output cloud with sun
-  if ((pres > 1014) && (pres < 1030)) {
-    memset(grid, 0, MAX_Y * MAX_X);
+  else if ((pres >= 1010) && (pres < 1030)) {
     draw_char(0, 0, 14);
     draw_char(8, 0, 15);
     draw_char(0, 8, 20);
     draw_char(8, 8, 21);
-    display_grid(0);
-    delay(2000);
   }
   // output sun
-  if (pres >= 1030) {
-    memset(grid, 0, MAX_Y * MAX_X);
+  else if (pres >= 1030) {
     draw_char(0, 0, 18);
     draw_char(8, 0, 19);
     draw_char(0, 8, 20);
     draw_char(8, 8, 21);
-    display_grid(0);
-    delay(2000);
   }
+  display_grid(0);
+  delay(2000);
 }
 
 // display the current grid to the LED matrix
@@ -157,7 +150,6 @@ void display_grid(uint8_t bit) {
 
 void draw_char(uint8_t x0, uint8_t y0, uint8_t ch) {
   uint8_t c[8] = {};
-  uint8_t bit = 0;
   int i = 0;
   for (uint8_t j = 0; j < 8; j++) c[j] = pgm_read_byte_near(chars + ch * 8 + j);
   for (uint8_t y = y0; y < y0 + 8; y++) {
@@ -165,5 +157,24 @@ void draw_char(uint8_t x0, uint8_t y0, uint8_t ch) {
       i = x0 + 0x07 - x;
       grid[y * MAX_X + x] = ((c[y - y0] & (1 << i)) >> i);
     }
+  }
+}
+
+void draw_num(uint8_t x0, uint8_t y0, int num) {
+  uint8_t n[4] = {};
+  int div = 1000;
+  int number = num;
+  int i = 0;
+  // show digits
+  for (uint8_t d = 0; d < 4; d++) {
+    for (uint8_t j = 0; j < 4; j++) n[j] = pgm_read_byte_near(nums + (number / div) * 4 + j);
+    for (uint8_t y = y0; y < y0 + 4; y++) {
+      for (uint8_t x = x0; x < x0 + 4; x++) {
+        i = x0 + 0x03 - x;
+        grid[y * MAX_X + x + d * 4] = ((n[y - y0] & (1 << i)) >> i);
+      }
+    }
+    number -= (number / div) * div;
+    div /= 10;
   }
 }

@@ -1,6 +1,3 @@
-// this header file implements numbers and custom symbols to show on an IKEA Obegränsad LED lamp
-// It is the digits 0 to 9, °C, %H, and a cloud with rain to sunshine
-
 #ifndef numchars_h
 #define numchars_h
 
@@ -202,4 +199,53 @@ const uint8_t chars[] PROGMEM = { 0b00000000,
                                   0b00100010,
                                   0b00100000 };
 
+const uint8_t nums[] PROGMEM{ 0b00000000,
+                              0b00000000,
+                              0b00000000,
+                              0b00000000,
+
+                              0b00000000,
+                              0b00000100,
+                              0b00000000,
+                              0b00000000,
+
+                              0b00001000,
+                              0b00000000,
+                              0b00000010,
+                              0b00000000,
+
+                              0b00001000,
+                              0b00000100,
+                              0b00000010,
+                              0b00000000,
+
+                              0b00001010,
+                              0b00000000,
+                              0b00001010,
+                              0b00000000,
+
+                              0b00001010,
+                              0b00000100,
+                              0b00001010,
+                              0b00000000,
+
+                              0b00001110,
+                              0b00000000,
+                              0b00001110,
+                              0b00000000,
+
+                              0b00001110,
+                              0b00000100,
+                              0b00001110,
+                              0b00000000,
+
+                              0b00001110,
+                              0b00001010,
+                              0b00001110,
+                              0b00000000,
+
+                              0b00001110,
+                              0b00001110,
+                              0b00001110,
+                              0b00000000 };
 #endif

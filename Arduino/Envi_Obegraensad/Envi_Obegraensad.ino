@@ -82,10 +82,10 @@ void loop() {
   }
   // output cloud with sun
   else if ((pres >= 1010) && (pres < 1030)) {
-    draw_char(0, 0, 14);
-    draw_char(8, 0, 15);
-    draw_char(0, 8, 20);
-    draw_char(8, 8, 21);
+    draw_char(0, 0, 22);
+    draw_char(8, 0, 23);
+    draw_char(0, 8, 24);
+    draw_char(8, 8, 25);
   }
   // output sun
   else if (pres >= 1030) {

@@ -67,7 +67,6 @@ void loop() {
   // display pressure
   memset(grid, 0, MAX_Y * MAX_X);
   // display condition icon
-  // draw_num(0, 12, pres);
   // output rain
   if (pres < 990) {
     draw_char(0, 0, 14);
@@ -77,8 +76,8 @@ void loop() {
   }
   // output cloud
   else if ((pres >= 990) && (pres < 1010)) {
-    draw_char(0, 0, 14);
-    draw_char(8, 0, 15);
+    draw_char(0, 4, 14);
+    draw_char(8, 4, 15);
   }
   // output cloud with sun
   else if ((pres >= 1010) && (pres < 1030)) {
@@ -94,6 +93,9 @@ void loop() {
     draw_char(0, 8, 20);
     draw_char(8, 8, 21);
   }
+  // output the iconized pressure value
+  draw_num(0, 12, pres);
+  // and display everything
   display_grid(0);
   delay(2000);
 }

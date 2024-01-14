@@ -54,7 +54,7 @@ void loop() {
   draw_char(8, 8, 11);  // C
   display_grid(0);
   delay(2000);
-  // output realtive humidity on Obegränsad
+  // output relative humidity on Obegränsad
   memset(grid, 0, MAX_Y * MAX_X);
   ones = hum % 10;
   tens = (hum - ones) / 10;
@@ -76,8 +76,8 @@ void loop() {
   }
   // output cloud
   else if ((pres >= 990) && (pres < 1010)) {
-    draw_char(0, 4, 14);
-    draw_char(8, 4, 15);
+    draw_char(0, 2, 14);
+    draw_char(8, 2, 15);
   }
   // output cloud with sun
   else if ((pres >= 1010) && (pres < 1030)) {

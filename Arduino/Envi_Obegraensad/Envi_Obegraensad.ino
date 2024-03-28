@@ -162,9 +162,19 @@ void fade_grid(void) {
       analogWrite(EN_PIN, pgm_read_byte_near(logled + i));
       delay(15);
     }
-    for (int i = 0; i < 0xff; i++) {
+    for (int i = 0; i <= 0xff; i++) {
       analogWrite(EN_PIN, pgm_read_byte_near(logled + i));
       delay(15);
+    }
+  } else if (PWM == 2) {
+    for (int i = 0; i <= 0xff; i++) {
+      analogWrite(EN_PIN, 0xff - pgm_read_byte_near(logled + i));
+      delay(5);
+    }
+    delay(1000);
+    for (int i = 0xff; i >= 0; i--) {
+      analogWrite(EN_PIN, 0xff - pgm_read_byte_near(logled + i));
+      delay(5);
     }
   } else {
     digitalWrite(EN_PIN, LOW);

@@ -12,16 +12,19 @@
 // LED matrix pins
 #define CLA_PIN 8
 #define EN_PIN 9
+// define button pins
+#define BUT_I 2
+#define BUT_O 3
 // grid dimensions corresponding to LED matrix
 #define MAX_Y 16
 #define MAX_X 16
 // number of shift registers
 #define SR 16
-// switch PWM fading
-#define PWM 1
 
 // grid for display
 uint8_t grid[MAX_Y * MAX_X];
+// state of button
+volatile uint8_t button_state = LOW;
 
 // environment sensor
 Adafruit_BME280 bme;
@@ -30,6 +33,11 @@ void setup() {
   // set the output pins
   pinMode(CLA_PIN, OUTPUT);
   pinMode(EN_PIN, OUTPUT);
+  // button handling
+  pinMode(BUT_O, OUTPUT);
+  pinMode(BUT_I, INPUT_PULLUP);
+  digitalWrite(BUT_O, LOW);
+  attachInterrupt(digitalPinToInterrupt(BUT_I), handle_button, FALLING);
   // switch LEDs off - OE/EN is internally pulled high
   digitalWrite(EN_PIN, HIGH);
   // no data, nothing to latch yet - CLA is internally pulled low
@@ -41,6 +49,19 @@ void setup() {
 }
 
 void loop() {
+  show_environment();
+}
+
+// button interrupt handler
+void handle_button(void) {
+  button_state = !button_state;
+}
+
+// show environment values
+void show_environment() {
+  // fading mode
+  const uint8_t mode = 1;
+  // humidity digits
   uint8_t tens, ones;
   // get environment data
   int temp = (int)bme.readTemperature();
@@ -55,8 +76,7 @@ void loop() {
   draw_char(0, 8, 10);  // °
   draw_char(8, 8, 11);  // C
   display_grid(0);
-  //delay(2000);
-  fade_grid();
+  fade_grid(mode);
   // output relative humidity on Obegränsad
   memset(grid, 0, MAX_Y * MAX_X);
   ones = hum % 10;
@@ -66,8 +86,7 @@ void loop() {
   draw_char(0, 8, 12);  // %
   draw_char(8, 8, 13);  // H
   display_grid(0);
-  //delay(2000);
-  fade_grid();
+  fade_grid(mode);
   // display pressure
   memset(grid, 0, MAX_Y * MAX_X);
   // display condition icon
@@ -101,8 +120,7 @@ void loop() {
   draw_num(0, 12, pres);
   // and display everything
   display_grid(0);
-  //delay(2000);
-  fade_grid();
+  fade_grid(mode);
 }
 
 // display the current grid to the LED matrix
@@ -147,7 +165,7 @@ void display_grid(uint8_t bit) {
     }
   }
   // transfer to shift registers
-  SPI.beginTransaction(SPISettings(400000, MSBFIRST, SPI_MODE0));
+  SPI.beginTransaction(SPISettings(800000, MSBFIRST, SPI_MODE0));
   SPI.transfer(buffer, SR * 2);
   SPI.endTransaction();
   // transfer the cells to the LED output
@@ -156,30 +174,34 @@ void display_grid(uint8_t bit) {
 }
 
 // fade the grid on the LEDs using PWM on the enable pin
-void fade_grid(void) {
-  if (PWM == 1) {
-    for (int i = 0xff; i >= 0; i--) {
-      analogWrite(EN_PIN, pgm_read_byte_near(logled + i));
-      delay(15);
-    }
-    for (int i = 0; i <= 0xff; i++) {
-      analogWrite(EN_PIN, pgm_read_byte_near(logled + i));
-      delay(15);
-    }
-  } else if (PWM == 2) {
-    for (int i = 0; i <= 0xff; i++) {
-      analogWrite(EN_PIN, 0xff - pgm_read_byte_near(logled + i));
-      delay(5);
-    }
-    delay(1000);
-    for (int i = 0xff; i >= 0; i--) {
-      analogWrite(EN_PIN, 0xff - pgm_read_byte_near(logled + i));
-      delay(5);
-    }
-  } else {
-    digitalWrite(EN_PIN, LOW);
-    delay(2000);
-    digitalWrite(EN_PIN, HIGH);
+void fade_grid(uint8_t mode) {
+  switch (mode) {
+    case 1:
+      for (int i = 0xff; i >= 0; i--) {
+        analogWrite(EN_PIN, pgm_read_byte_near(logled + i));
+        delay(15);
+      }
+      for (int i = 0; i <= 0xff; i++) {
+        analogWrite(EN_PIN, pgm_read_byte_near(logled + i));
+        delay(15);
+      }
+      break;
+    case 2:
+      for (int i = 0; i <= 0xff; i++) {
+        analogWrite(EN_PIN, 0xff - pgm_read_byte_near(logled + i));
+        delay(5);
+      }
+      delay(1000);
+      for (int i = 0xff; i >= 0; i--) {
+        analogWrite(EN_PIN, 0xff - pgm_read_byte_near(logled + i));
+        delay(5);
+      }
+      break;
+    default:
+      digitalWrite(EN_PIN, LOW);
+      delay(2000);
+      digitalWrite(EN_PIN, HIGH);
+      break;
   }
 }
 

@@ -15,4 +15,4 @@ Content structure:
 * [RS232-RS485-Converter](RS232-RS485-Converter) - Convert legacy serial I/O to RS-485 with flow control
 * [TempGuard](TempGuard) - Use temperature sensors to control a warm water circulation pump
 
-&copy; Markus Gebhard, Karlsruhe, Germany, 2023, all content under [MIT License](http://opensource.org/licenses/MIT) if not denoted otherwise
+&copy; Markus Gebhard, Wiesloch, Germany, 2024, all content under [MIT License](http://opensource.org/licenses/MIT) if not denoted otherwise

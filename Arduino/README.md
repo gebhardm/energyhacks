@@ -32,3 +32,8 @@ Using the year end vacation to "finally" get something useful on the IKEA Obegr√
 For more information, refer to the code in the [Envi_Obegraensad](Envi_Obegraensad/) folder.
 
 <img src="Obegraensad.jpg" width=300px>
+
+## IKEA Vindriktning as Matter Device
+The meanwhile old IKEA Vindriktning Air Quality sensor had no real use since the Alpstuga makes it so much easier. Nevertheless there was the challenge to also make the old PM1006 particle sensor a Matter device using the examples from the Espressif ESP32 implementation (funny to use the computing power of a Cray 1 to read PM2.5 data and transmit it). This is how MatterPM25Sensor came to life. Finalization ongoing, but the current implementation can be used in the IKEA Home smart App.
+
+<img src="MatterVindriktning.jpg" width=300px>

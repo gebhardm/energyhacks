@@ -1,4 +1,4 @@
-// Copyright 2025 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2025-2026 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,16 +27,26 @@
  *   esp_matter::cluster::pm25_concentration_measurement namespaces
  *   without any separate generated headers.
  *
+ * This code came to life following https://github.com/espressif/arduino-esp32/issues/12920
+ * Many thanks for the quick support!!
+ *
  * Hardware: ESP32 with large app partition scheme.
  *
  * Commissioning:
  *   - Manual pairing code.
  *   - Hold BOOT button for 5 s to factory-reset / decommission.
  *
- * readPM25Sensor() takes data from an IKEA Vindriktning PM1006 particle sensor via serial connectio
- * on pin IO16
+ * readPM25Sensor() takes data from an IKEA Vindriktning PM1006 particle sensor via serial 
+ * connection pin IO16
  * 
  * Programmed with some help from Claude Code (yes, everybody has to do "something with AI" these days)
+ * and revised after _init() issues with the help of the Matter Library maintainers
+ *
+ * Used hardware:
+ * IKEA Vindriktning Particle Measurement Sensor
+ * ESP32-C3 Mini board
+ * Voltage level shifter from Vindriktning 5V to the ESP's 3V3, a simple BS170 with two 10k resistors
+ *
  */
 
 #include <Arduino.h>
@@ -121,6 +131,8 @@ void setup() {
   // Not the Arduino test pair 0xF00 / 20202021. Use the generated pairing codes below.
   Matter.setSetupDiscriminator(kSetupDiscriminator);
   Matter.setSetupPasscode(kSetupPasscode);
+  // declare a distinct endpoint name per the product name
+  matterSetExampleIdentity(kProductName);
 
   // 3. Start the Matter stack (must be called after all endpoints are set up).
   Matter.begin();
@@ -143,6 +155,8 @@ void setup() {
 // Arduino loop
 // ---------------------------------------------------------------------------
 void loop() {
+  // restart if the Matter configuration is not complete
+  matterRestartIfNoFabric();
   // read from the particle measurement sensor
   if (Serial1.available() > 0) {
     pm1006[cnt] = Serial1.read();

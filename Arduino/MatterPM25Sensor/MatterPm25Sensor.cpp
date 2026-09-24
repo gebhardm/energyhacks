@@ -48,6 +48,7 @@ MatterPm25Sensor::~MatterPm25Sensor() {
 
 bool MatterPm25Sensor::begin(int16_t _rawPm25Concentration) {
   //ArduinoMatter::_init();
+  /*
   node::config_t nodeConfig;
   node_t *node = node::create(&nodeConfig, app_attribute_update_cb, app_identification_cb);
   if (node == nullptr) {
@@ -57,15 +58,18 @@ bool MatterPm25Sensor::begin(int16_t _rawPm25Concentration) {
 
   //ArduinoMatter::_init() would set the NodeCreated lifecycle indication
   //sLifecycle = MatterLifecycle::NodeCreated;
+  */
+  ensureMatterNode();
 
   if (getEndPointId() != 0) {
     log_e("Matter PM2.5 Concentration Sensor with Endpoint Id %u device has already been created.", getEndPointId());
     return false;
   }
+  // now create the Air Quality Sensor endpoint
+  air_quality_sensor::config_t aqConfig;
 
   pm25_concentration_measurement::config_t pm25Config;
   pm25Config.measurement_medium = 0;  // 0 = Air
-
   // feature_flags: bit 0 = NumericMeasurement (MEA)
   pm25Config.feature_flags =
     concentration_measurement::feature::numeric_measurement::get_id();
@@ -77,10 +81,9 @@ bool MatterPm25Sensor::begin(int16_t _rawPm25Concentration) {
   pm25Config.features.numeric_measurement.measurement_unit = 1;  // 1 = µg/m³
 
   // endpoint handles can be used to add/modify clusters
-  air_quality_sensor::config_t aqConfig;
   endpoint_t *endpoint = air_quality_sensor::create(node::get(), &aqConfig, ENDPOINT_FLAG_NONE, nullptr);
   if (endpoint == nullptr) {
-    log_e("Failed to create Air Quality Sensor endpoint — halting.");
+    log_e("Failed to create Air Quality Sensor endpoint.");
     return false;
   }
 
@@ -91,6 +94,11 @@ bool MatterPm25Sensor::begin(int16_t _rawPm25Concentration) {
     return false;
   }
   log_i("PM2.5 Concentration Measurement cluster added");
+
+  if (!registerCreatedEndpoint(endpoint)) {
+    log_e("Error in endpoint creation", endpoint);
+    return false;
+  }
 
   rawPm25Concentration = _rawPm25Concentration;
   setEndPointId(endpoint::get_id(endpoint));

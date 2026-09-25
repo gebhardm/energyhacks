@@ -89,14 +89,17 @@ static uint32_t g_buttonPressedAt = 0;
 // ---------------------------------------------------------------------------
 static float readPM25Sensor() {
   uint8_t checksum = 0;
-  static float value = 0.0f;
+  static uint16_t value = 0;
   for (uint8_t i = 0; i < 20; i++) { checksum += pm1006[i]; }
-  if (checksum == 0) value = (float)((pm1006[5] << 8) | pm1006[6]);
+  if (checksum == 0) {
+    value = ((pm1006[5] << 8) | pm1006[6]);
+    log_v("PM1006: %i",value);
+  }
   else {
     log_e("PM25: Sensor checksum invalid.");
     cnt = 0;  // reset read counter as something must went wrong
   }
-  return value;
+  return (float)value;
 }
 
 // ---------------------------------------------------------------------------

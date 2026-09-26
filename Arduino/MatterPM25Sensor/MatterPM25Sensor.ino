@@ -44,7 +44,7 @@
  *
  * Used hardware:
  * IKEA Vindriktning Particle Measurement Sensor
- * ESP32-C3 Mini board
+ * ESP32-C6 Super Mini board (work also with plain ESP32)
  * Voltage level shifter from Vindriktning 5V to the ESP's 3V3, a simple BS170 with two 10k resistors
  *
  */
@@ -60,7 +60,6 @@
 // ---------------------------------------------------------------------------
 // Globals
 // ---------------------------------------------------------------------------
-static float g_lastPM25 = -1.0f;
 uint8_t cnt = 0;
 int pm1006[20];
 

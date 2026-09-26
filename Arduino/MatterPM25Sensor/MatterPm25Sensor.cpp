@@ -59,7 +59,6 @@ bool MatterPm25Sensor::begin(int16_t _rawPm25Concentration) {
   }
 
   rawPm25Concentration = _rawPm25Concentration;
-  setEndPointId(endpoint::get_id(endpoint));
 
   log_i("PM2.5 Concentration Measurement Sensor created with endpoint_id %u", getEndPointId());
 

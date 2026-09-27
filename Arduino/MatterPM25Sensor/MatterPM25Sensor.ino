@@ -62,7 +62,7 @@
 // Globals
 // ---------------------------------------------------------------------------
 uint8_t cnt = 0;
-uint8_t pm1006[20];
+uint8_t pm1006[100];
 
 MatterPm25Sensor Pm25Sensor;
 
@@ -95,13 +95,14 @@ static float readPM25Sensor() {
     log_e("PM25: Invalid sensor reading.");
     return -1.00f;
   }
+  // pm1006 message length is 20, so validate checksum over firth 20 bytes
   for (uint8_t i = 0; i < 20; i++) {
     checksum += pm1006[i];
   }
   log_buf_d(pm1006, sizeof(pm1006));
   if (checksum == 0) {
     value = ((pm1006[5] << 8) | pm1006[6]);
-    log_v("PM1006: %i", value);
+    log_i("PM1006: %i", value);
   } else {
     log_e("PM25: Sensor checksum invalid.");
     cnt = 0;  // reset read counter as something must went wrong
@@ -168,7 +169,7 @@ void loop() {
   matterRestartIfNoFabric();
   // read from the particle measurement sensor
   while (Serial1.available() > 0) {
-    pm1006[cnt % 20] = (uint8_t)Serial1.read();
+    pm1006[cnt % sizeof(pm1006)] = (uint8_t)Serial1.read();
     cnt++;
   }
   cnt = 0;  // reset input counter
@@ -177,8 +178,7 @@ void loop() {
     lastSensorRead = millis();
     float pm25 = readPM25Sensor();
     log_i("Sensor reading: %.2f µg/m³\n", pm25);
-    if (pm25 > 0)
-      Pm25Sensor.setPm25Concentration(pm25);
+    if (pm25 >= 0) Pm25Sensor.setPm25Concentration(pm25);
   }
 
   // Decommission on 5-second BOOT-button press.

@@ -18,24 +18,23 @@ MatterPm25Sensor::~MatterPm25Sensor() {
   end();
 }
 
-bool MatterPm25Sensor::begin(int16_t _rawPm25Concentration) {
-  // get endpoint to add own clusters to
+bool MatterPm25Sensor::begin(float initPm25Ugm3) {
+  // check that the Matter root node has been created  
   ensureMatterNode();
-
+  // check that we start from the root node - have to think about this
   if (getEndPointId() != 0) {
-    log_e("Matter PM2.5 Concentration Sensor with Endpoint Id %u device has already been created.", getEndPointId());
+    log_e("Matter Endpoint Id %u is not the root node.", getEndPointId());
     return false;
   }
-  // now create the Air Quality Sensor endpoint
+  // now create the Air Quality Sensor endpoint with particle concentration measurement cluster
   air_quality_sensor::config_t aqConfig;
 
   pm25_concentration_measurement::config_t pm25Config;
   pm25Config.measurement_medium = chip::to_underlying(MeasurementMediumEnum::kAir);
-  pm25Config.feature_flags =
-    concentration_measurement::feature::numeric_measurement::get_id();
-  pm25Config.features.numeric_measurement.measured_value = nullable<float>(_rawPm25Concentration);
-  pm25Config.features.numeric_measurement.min_measured_value = nullable<float>();
-  pm25Config.features.numeric_measurement.max_measured_value = nullable<float>();
+  pm25Config.feature_flags = concentration_measurement::feature::numeric_measurement::get_id();
+  pm25Config.features.numeric_measurement.measured_value = nullable<float>(initPm25Ugm3);
+  pm25Config.features.numeric_measurement.min_measured_value = nullable<float>(initPm25Ugm3);
+  pm25Config.features.numeric_measurement.max_measured_value = nullable<float>(initPm25Ugm3);
   pm25Config.features.numeric_measurement.measurement_unit = chip::to_underlying(MeasurementUnitEnum::kUgm3);
 
   // endpoint handles can be used to add/modify clusters
@@ -44,21 +43,21 @@ bool MatterPm25Sensor::begin(int16_t _rawPm25Concentration) {
     log_e("Failed to create Air Quality Sensor endpoint.");
     return false;
   }
-
-  cluster_t *pm25Cluster =
-    pm25_concentration_measurement::create(endpoint, &pm25Config, CLUSTER_FLAG_SERVER);
+  // now define a particle concentration cluster at the endpoint
+  cluster_t *pm25Cluster = pm25_concentration_measurement::create(endpoint, &pm25Config, CLUSTER_FLAG_SERVER);
   if (pm25Cluster == nullptr) {
     log_e("Failed to add PM2.5 cluster — halting.");
     return false;
   }
   log_i("PM2.5 Concentration Measurement cluster added");
 
+  // register the endpoint to the Matter environment
   if (!registerCreatedEndpoint(endpoint)) {
     log_e("Error in endpoint creation", endpoint);
     return false;
   }
 
-  rawPm25Concentration = _rawPm25Concentration;
+  pm25Ugm3 = initPm25Ugm3;
 
   log_i("PM2.5 Concentration Measurement Sensor created with endpoint_id %u", getEndPointId());
 
@@ -70,14 +69,14 @@ void MatterPm25Sensor::end() {
   started = false;
 }
 
-bool MatterPm25Sensor::setRawPm25Concentration(int16_t _rawPm25Concentration) {
+bool MatterPm25Sensor::setPm25Concentration(float _pm25Ugm3) {
   if (!started) {
     log_e("Matter PM2.5 Concentration Measurement Sensor device has not begun.");
     return false;
   }
 
   // avoid processing if there was no change
-  if (rawPm25Concentration == _rawPm25Concentration) {
+  if (pm25Ugm3 == _pm25Ugm3) {
     return true;
   }
 
@@ -87,15 +86,14 @@ bool MatterPm25Sensor::setRawPm25Concentration(int16_t _rawPm25Concentration) {
     log_e("Failed to get PM2.5 Concentration Measurement Sensor Attribute.");
     return false;
   }
-  if (pm25Val.val.i16 != _rawPm25Concentration) {
-    pm25Val.val.i16 = _rawPm25Concentration;
-    bool ret;
-    ret = updateAttributeVal(Pm25ConcentrationMeasurement::Id, Pm25ConcentrationMeasurement::Attributes::MeasuredValue::Id, &pm25Val);
-    if (!ret) {
+  if (pm25Val.val.f != _pm25Ugm3) {
+    pm25Val.val.f = _pm25Ugm3;
+    if (!updateAttributeVal(Pm25ConcentrationMeasurement::Id, Pm25ConcentrationMeasurement::Attributes::MeasuredValue::Id, &pm25Val)) {
       log_e("Failed to update PM2.5 Concentration Measurement Sensor Measurement Attribute.");
       return false;
     }
-    rawPm25Concentration = _rawPm25Concentration;
+    // make value gloab
+    pm25Ugm3 = _pm25Ugm3;
   }
   log_v("PM2.5 Concentration Measurement Sensor set to %.02f ugPerM3", (float)_rawPm25Concentration);
 

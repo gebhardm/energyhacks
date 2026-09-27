@@ -20,32 +20,19 @@ public:
     return true;
   }
   // begin Matter PM2.5 Concentration Measurement Sensor endpoint with initial concentration
-  bool begin(double ugPerM3 = 0.00) {
-    return begin(static_cast<int16_t>(ugPerM3));
-  }
+  bool begin(float initPm25Ugm3 = 0.0f);
   // stop processing concentration measurement sensor matter events
   void end();
   // set reported concentration measurement value
-  bool setPm25Concentration(double ugPerM3) {
-    int16_t rawValue = static_cast<int16_t>(ugPerM3);
-    return setRawPm25Concentration(rawValue);
-  }
+  bool setPm25Concentration(float);
   // return the reported float concentration measurement
-  double getPm25Concentration() {
-    return (double)rawPm25Concentration;
-  }
-  // double conversion operator
-  void operator=(double ugPerM3) {
-    setPm25Concentration(ugPerM3);
-  }
-  // double conversion operator
-  operator double() {
-    return (double)getPm25Concentration();
+  float getPm25Concentration() const {
+    return pm25Ugm3;
   }
 
 protected:
   void onStackStarted() override {
-    esp_matter_attr_val_t val = esp_matter_nullable_float(nullable<float>(rawPm25Concentration));
+    esp_matter_attr_val_t val = esp_matter_nullable_float(nullable<float>(pm25Ugm3));
     lock::ScopedChipStackLock stackLock(portMAX_DELAY);
     if (!updateAttributeVal(Pm25ConcentrationMeasurement::Id, Pm25ConcentrationMeasurement::Attributes::MeasuredValue::Id, &val)) {
       log_e("Failed to apply cached PM2.5 value after Matter.begin().");
@@ -54,8 +41,6 @@ protected:
 
 private:
   bool started = false;
-  int16_t rawPm25Concentration = 0;
-  bool setRawPm25Concentration(int16_t _rawPm25Concentration);
-  bool begin(int16_t _rawPm25Concentration);
+  float pm25Ugm3 = 0.0f;
 };
 #endif /* CONFIG_ESP_MATTER_ENABLE_DATA_MODEL */

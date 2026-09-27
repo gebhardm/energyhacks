@@ -53,6 +53,7 @@
 #include <Matter.h>
 #include "MatterPm25Sensor.h"
 
+// commissioning happens via bluetooth normally; ESP32 has no BT --> WiFi
 #if !CONFIG_ENABLE_CHIPOBLE
 #include <WiFiManager.h>
 #endif
@@ -61,7 +62,7 @@
 // Globals
 // ---------------------------------------------------------------------------
 uint8_t cnt = 0;
-int pm1006[20];
+uint8_t pm1006[20];
 
 MatterPm25Sensor Pm25Sensor;
 
@@ -89,14 +90,22 @@ static uint32_t g_buttonPressedAt = 0;
 static float readPM25Sensor() {
   uint8_t checksum = 0;
   static uint16_t value = 0;
-  for (uint8_t i = 0; i < 20; i++) { checksum += pm1006[i]; }
+  // check valid sensor reading --> 0x16, 0x11, 0x0b first three bytes
+  if (!((pm1006[0] == 0x16) && (pm1006[1] == 0x11) && (pm1006[2] == 0x0b))) {
+    log_e("PM25: Invalid sensor reading.");
+    return -1.00f;
+  }
+  for (uint8_t i = 0; i < 20; i++) {
+    checksum += pm1006[i];
+  }
+  log_buf_d(pm1006, sizeof(pm1006));
   if (checksum == 0) {
     value = ((pm1006[5] << 8) | pm1006[6]);
-    log_v("PM1006: %i",value);
-  }
-  else {
+    log_v("PM1006: %i", value);
+  } else {
     log_e("PM25: Sensor checksum invalid.");
     cnt = 0;  // reset read counter as something must went wrong
+    return -1.00f;
   }
   return (float)value;
 }
@@ -107,8 +116,8 @@ static float readPM25Sensor() {
 void setup() {
   pinMode(kButtonPin, INPUT_PULLUP);
   Serial.begin(115200);
-  // PM1006 Reading --> RX/TX = 16/17 (actually UART2, TX unused)
-  Serial1.setPins(16, 17);
+  // PM1006 Reading --> RX/TX = 16/17 (ESP32:UART2, TX unused)
+  Serial1.setPins(4, 5);
   Serial1.begin(9600);
   // configure WiFi connection via WiFi manager frontend UI
   // search WLAN for "MatterDevice" and log in with "password"
@@ -133,8 +142,6 @@ void setup() {
   // Not the Arduino test pair 0xF00 / 20202021. Use the generated pairing codes below.
   Matter.setSetupDiscriminator(kSetupDiscriminator);
   Matter.setSetupPasscode(kSetupPasscode);
-  // declare a distinct endpoint name per the product name
-  matterSetExampleIdentity(kProductName);
 
   // 3. Start the Matter stack (must be called after all endpoints are set up).
   Matter.begin();
@@ -160,17 +167,18 @@ void loop() {
   // restart if the Matter configuration is not complete
   matterRestartIfNoFabric();
   // read from the particle measurement sensor
-  if (Serial1.available() > 0) {
-    pm1006[cnt] = Serial1.read();
+  while (Serial1.available() > 0) {
+    pm1006[cnt % 20] = (uint8_t)Serial1.read();
     cnt++;
-    if (cnt == 20) cnt = 0;  // the sensor reading hold 20 bytes
   }
+  cnt = 0;  // reset input counter
   static uint32_t lastSensorRead = 0;
   if (millis() - lastSensorRead >= 10000UL) {
     lastSensorRead = millis();
     float pm25 = readPM25Sensor();
     log_i("Sensor reading: %.2f µg/m³\n", pm25);
-    Pm25Sensor.setPm25Concentration(pm25);
+    if (pm25 > 0)
+      Pm25Sensor.setPm25Concentration(pm25);
   }
 
   // Decommission on 5-second BOOT-button press.

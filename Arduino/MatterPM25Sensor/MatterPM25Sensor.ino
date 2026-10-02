@@ -37,7 +37,7 @@
  *   - Hold BOOT button for 5 s to factory-reset / decommission.
  *
  * readPM25Sensor() takes data from an IKEA Vindriktning PM1006 particle sensor via serial 
- * connection pin IO16
+ * connection pin IO16 or IO04 on a C6
  * 
  * Programmed with some help from Claude Code (yes, everybody has to do "something with AI" these days)
  * and revised after _init() issues with the help of the Matter Library maintainers
@@ -61,7 +61,7 @@
 // ---------------------------------------------------------------------------
 // Globals
 // ---------------------------------------------------------------------------
-uint8_t cnt = 0;
+// the sensor message with concentration measurements on PM1.0, PM2.5 and PM10
 uint8_t pm1006[100];
 
 MatterPm25Sensor Pm25Sensor;
@@ -95,7 +95,7 @@ static float readPM25Sensor() {
     log_e("PM25: Invalid sensor reading.");
     return -1.00f;
   }
-  // pm1006 message length is 20, so validate checksum over firth 20 bytes
+  // pm1006 message length is 20, so validate checksum over first 20 bytes
   for (uint8_t i = 0; i < 20; i++) {
     checksum += pm1006[i];
   }
@@ -105,7 +105,6 @@ static float readPM25Sensor() {
     log_i("PM1006: %i", value);
   } else {
     log_e("PM25: Sensor checksum invalid.");
-    cnt = 0;  // reset read counter as something must went wrong
     return -1.00f;
   }
   return (float)value;
@@ -117,7 +116,7 @@ static float readPM25Sensor() {
 void setup() {
   pinMode(kButtonPin, INPUT_PULLUP);
   Serial.begin(115200);
-  // PM1006 Reading --> RX/TX = 16/17 (ESP32:UART2, TX unused)
+  // PM1006 Reading --> RX/TX = 16/17 (ESP32:UART2, TX unused, ESP32-C6 this is UART0)
   Serial1.setPins(4, 5);
   Serial1.begin(9600);
   // configure WiFi connection via WiFi manager frontend UI
@@ -130,19 +129,19 @@ void setup() {
   };
   log_i("connected.");
 #endif
-  // Setup PM2.5 Concentration Measurement
-  Pm25Sensor.begin();
-
-  // Set Product Information
+  // Set Product Information and passcode for commissioning
   Matter.setVendorName(kVendorName);
   Matter.setProductName(kProductName);
   Matter.setDeviceName(kDeviceName);
   Matter.setSerialNumber(kSerialNumber);
   Matter.setHardwareVersion(kHardwareVersion);
   Matter.setHardwareVersionString(kHardwareVersionString);
-  // Not the Arduino test pair 0xF00 / 20202021. Use the generated pairing codes below.
   Matter.setSetupDiscriminator(kSetupDiscriminator);
   Matter.setSetupPasscode(kSetupPasscode);
+
+  // Now set up the endpoints
+  // Setup PM2.5 Concentration Measurement - the Vindriktning has just a PM1006 sensor
+  Pm25Sensor.begin();
 
   // 3. Start the Matter stack (must be called after all endpoints are set up).
   Matter.begin();
@@ -165,6 +164,7 @@ void setup() {
 // Arduino loop
 // ---------------------------------------------------------------------------
 void loop() {
+  uint8_t cnt = 0;
   // restart if the Matter configuration is not complete
   matterRestartIfNoFabric();
   // read from the particle measurement sensor
@@ -172,7 +172,6 @@ void loop() {
     pm1006[cnt % sizeof(pm1006)] = (uint8_t)Serial1.read();
     cnt++;
   }
-  cnt = 0;  // reset input counter
   static uint32_t lastSensorRead = 0;
   if (millis() - lastSensorRead >= 10000UL) {
     lastSensorRead = millis();
